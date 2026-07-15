@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ClutchDATA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/main.css">
+    <link rel="stylesheet" href="/static/components.css">
+</head>
+<body class="bg-dashboard text-slate-200 font-sans min-h-screen">
+    <!-- Navbar -->
+    <nav class="glass-panel navbar">
+        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="navbar-content">
+                <!-- Left: Logo -->
+                <div class="flex items-center">
+                    <span class="brand-logo">
+                        ClutchDATA
+                    </span>
+                </div>
+                <!-- Center: Search -->
+                <div class="hidden md:flex flex-1 justify-center px-8">
+                    <form action="/search" method="POST" class="search-form">
+                        <input type="text" name="steam_url" class="search-input" placeholder="Wklej link do profilu Steam lub SteamID">
+                        <button type="submit" class="search-btn">Szukaj</button>
+                    </form>
+                </div>
+                <!-- Right: Profile & Logout -->
+                <div class="flex items-center gap-4">
+                    {% if logged_player_summary %}
+                        <a href="/dashboard" class="nav-profile">
+                            <span class="nav-profile-name hidden sm:block">
+                                {{ logged_player_summary.personaname }}
+                            </span>
+                            <img src="{{ logged_player_summary.avatar }}" alt="Avatar" class="avatar-sm">
+                        </a>
+                    {% endif %}
+                    <a href="/auth/logout" class="btn-secondary">
+                        Wyloguj
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-[1200px] mx-auto px-4 py-8">
+        <!-- Hero Section -->
+        <div class="glass-panel hero-section">
+            
+            <!-- Left: User Info -->
+            <div class="flex items-center gap-6 min-w-[300px]">
+                {% if player_summary %}
+                <img src="{{ player_summary.avatarfull }}" alt="{{ player_summary.personaname }}" class="avatar-lg">
+                <div>
+                    <h1 class="hero-title">{{ player_summary.personaname }}</h1>
+                    <div class="status-badge-online">
+                        <span class="status-dot"></span>
+                        Połączono
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Middle: Logos & Ranks -->
+            <div class="flex flex-1 items-center justify-center gap-12 lg:border-x border-slate-700/50 px-12 py-2">
+                <div class="flex flex-col items-center gap-2">
+                    {% if faceit_data and faceit_data.get('games') and faceit_data.get('games').get('cs2') %}
+                        {% set lvl = faceit_data.get('games').get('cs2').get('skill_level', 1) | int %}
+                        {% set bg_color = '#EEEEEE' %}
+                        {% if lvl >= 2 and lvl <= 3 %}{% set bg_color = '#1CE500' %}{% endif %}
+                        {% if lvl >= 4 and lvl <= 7 %}{% set bg_color = '#FFBA00' %}{% endif %}
+                        {% if lvl >= 8 and lvl <= 9 %}{% set bg_color = '#FF5E00' %}{% endif %}
+                        {% if lvl == 10 %}{% set bg_color = '#FE0000' %}{% endif %}
+                        <div class="relative w-16 h-16 rounded-full flex items-center justify-center drop-shadow-lg bg-[#222222]">
+                            <svg class="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" fill="none" stroke="#333333" stroke-width="10"></circle>
+                                <circle cx="50" cy="50" r="45" fill="none" stroke="{{ bg_color }}" stroke-width="10" stroke-dasharray="283" stroke-dashoffset="60" stroke-linecap="round"></circle>
+                            </svg>
+                            <span class="relative z-10 font-black text-2xl text-white drop-shadow">{{ lvl }}</span>
+                        </div>
+                        <span class="text-slate-300 text-sm mt-1">Liczba punktów</span>
+                        <span class="font-bold text-white">{{ "{:,}".format(faceit_data.get('games').get('cs2').get('faceit_elo', 0)) }}</span>
+                    {% else %}
+                        <div class="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center border border-slate-600 text-xs text-center shadow-inner relative overflow-hidden">
+                            <span class="text-slate-500 leading-tight">Brak<br>Faceit</span>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="flex flex-col items-center">
+                    <span class="text-sm text-slate-300 mb-3">Nazwa gracza Faceit</span>
+                    <div class="h-16 flex items-center justify-center">
+                        {% if faceit_data and faceit_data.get('nickname') %}
+                            <span class="text-2xl font-bold text-white drop-shadow-md">{{ faceit_data.get('nickname') }}</span>
+                        {% else %}
+                            <span class="text-slate-500 font-medium">Brak</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Hours Played -->
+            <div class="flex flex-col items-center justify-center min-w-[200px]">
+                <span class="text-sm text-slate-300 mb-2">Liczba Godzin w CS2:</span>
+                <span class="text-2xl text-white font-medium">{{ hours_played if hours_played else "N/A" }} </span>
+            </div>
+        </div>
+
+        {% if not faceit_data %}
+            <div class="alert-warning">
+                <h3 class="alert-title">Brak połączenia z FACEIT</h3>
+                <p class="alert-text">Skonfiguruj zmienną <code>FACEIT_API_KEY</code> w pliku <code>.env</code>. Użytkownik zostanie automatycznie wyszukany po SteamID.</p>
+            </div>
+        {% endif %}
+
+        <!-- Stats Cards -->
+        {% set faceit_lifetime = faceit_stats.lifetime if faceit_stats else {} %}
+        <div class="stats-grid">
+            <!-- Rating -->
+            <div class="glass-card stat-card-inner">
+                <p class="stat-label">Średni rating faceit</p>
+                <p class="stat-value-text">{{ faceit_lifetime.get('Average K/R Ratio', 'N/A') }}</p>
+            </div>
+            <!-- KD -->
+            <div class="glass-card stat-card-inner">
+                <p class="stat-label">K/D ratio faceit</p>
+                <p class="stat-value-text">{{ faceit_lifetime.get('Average K/D Ratio', 'N/A') }}</p>
+            </div>
+            <!-- Win Ratio -->
+            <div class="glass-card stat-card-inner">
+                <p class="stat-label">Win ratio</p>
+                <p class="stat-value-text">{{ faceit_lifetime.get('Win Rate %', 'N/A') }}%</p>
+            </div>
+            <!-- Matches -->
+            <div class="glass-card stat-card-inner">
+                <p class="stat-label">Liczba meczów</p>
+                <p class="stat-value-text">{{ faceit_lifetime.get('Matches', 'N/A') }}</p>
+            </div>
+        </div>
+
+        <!-- Match History -->
+        <div class="text-center mb-4">
+            <h2 class="text-lg text-slate-200">Tu na dole Lista do przewijania historii meczów</h2>
+        </div>
+
+        <div class="glass-panel rounded-2xl overflow-hidden">
+            <div class="table-wrapper custom-scrollbar">
+                <table class="data-table">
+                    <thead class="data-table-header">
+                        <tr>
+                            <th>Data meczu</th>
+                            <th>Wynik</th>
+                            <th class="text-center">Punkty</th>
+                            <th class="text-center">Rating</th>
+                            <th>K/D/A</th>
+                            <th>K/D</th>
+                            <th>ADR</th>
+                            <th>Mapa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if faceit_history %}
+                            {% for match in faceit_history %}
+                            <tr class="table-row-clickable {{ 'table-row-win' if match.get('player_stats', {}).get('Result') == '1' else 'table-row-loss' }}" onclick="window.location.href='/match/{{ match.get('match_id') }}'">
+                                <td>
+                                    {{ match.get('finished_at_str', match.get('finished_at', '?')) }}
+                                </td>
+                                <td>
+                                    {% set is_win = match.get('player_stats', {}).get('Result') == '1' %}
+                                    <span class="font-medium text-white flex items-center gap-3">
+                                        <span class="{{ 'badge-win' if is_win else 'badge-loss' }}">
+                                            {{ 'W' if is_win else 'L' }}
+                                        </span>
+                                        <span>
+                                            {{ match.get('results', {}).get('score', {}).get('faction1', '?') }} : {{ match.get('results', {}).get('score', {}).get('faction2', '?') }}
+                                        </span>
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <!-- API Faceit v4 nie zwraca dokładnego +/- ELO na mecz. Użyto przybliżenia wizualnego -->
+                                    <span class="font-bold {{ 'text-emerald-400' if is_win else 'text-red-400' }}">
+                                        {{ '~+25' if is_win else '~-25' }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    {% set kr = match.get('player_stats', {}).get('K/R Ratio', '0') | float %}
+                                    <span class="{{ 'rating-good' if kr >= 1.0 else 'rating-bad' }}">
+                                        {{ match.get('player_stats', {}).get('K/R Ratio', '?') }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {{ match.get('player_stats', {}).get('Kills', '?') }} / {{ match.get('player_stats', {}).get('Deaths', '?') }} / {{ match.get('player_stats', {}).get('Assists', '?') }}
+                                </td>
+                                <td class="font-medium">
+                                    {{ match.get('player_stats', {}).get('K/D Ratio', '?') }}
+                                </td>
+                                <td class="font-medium">
+                                    {{ match.get('player_stats', {}).get('ADR', '?') }}
+                                </td>
+                                <td>
+                                    {{ match.get('map', 'N/A') }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <!-- Mock Data to match layout -->
+                            <tr>
+                                <td>2026-06-08</td>
+                                <td class="text-emerald-400 font-medium">13 - 10</td>
+                                <td>de_mirage</td>
+                                <td class="text-emerald-400">+25</td>
+                                <td>21/14/5</td>
+                                <td>1.25</td>
+                            </tr>
+                            <tr>
+                                <td>2026-06-07</td>
+                                <td class="text-red-400 font-medium">9 - 13</td>
+                                <td>de_inferno</td>
+                                <td class="text-red-400">-24</td>
+                                <td>15/18/3</td>
+                                <td>0.95</td>
+                            </tr>
+                            <tr>
+                                <td>2026-06-06</td>
+                                <td class="text-emerald-400 font-medium">13 - 11</td>
+                                <td>de_nuke</td>
+                                <td class="text-emerald-400">+26</td>
+                                <td>24/13/4</td>
+                                <td>1.45</td>
+                            </tr>
+                            <tr>
+                                <td>2026-06-05</td>
+                                <td class="text-emerald-400 font-medium">13 - 7</td>
+                                <td>de_ancient</td>
+                                <td class="text-emerald-400">+25</td>
+                                <td>20/11/7</td>
+                                <td>1.32</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

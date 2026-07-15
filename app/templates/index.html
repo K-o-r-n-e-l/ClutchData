@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClutchDATA - CS2 Stats</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/main.css">
+    <link rel="stylesheet" href="/static/components.css">
+</head>
+<body class="bg-index flex items-center justify-center p-4">
+    <div class="glass-panel login-card">
+        <div class="mb-8">
+            <h1 class="login-title">
+                ClutchDATA
+            </h1>
+            <p class="login-subtitle">Analiza statystyk Counter-Strike 2</p>
+        </div>
+        
+        <div class="mb-8">
+            <div class="login-icon-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" class="login-icon" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M11.979 0A12.006 12.006 0 0 0 0 11.729c0 4.88 2.922 9.073 7.106 10.916l.462-2.846a3.17 3.17 0 0 1-.365-.138c-1.396-.642-2.128-2.228-1.688-3.664.382-1.246 1.503-2.072 2.766-2.072.392 0 .782.08 1.144.24l2.76-4.048c-.015-.094-.029-.19-.029-.287 0-1.233.978-2.233 2.185-2.233s2.185 1 2.185 2.233-.978 2.233-2.185 2.233c-.15 0-.295-.017-.436-.048l-3.957 2.871c.074.276.113.565.113.858A3.19 3.19 0 0 1 10.222 19a3.19 3.19 0 0 1-2.909-1.9l-4.75 1.13c.27 3.16 2.388 5.862 5.378 6.945.642.232 1.32.368 2.031.401 6.559.308 12.025-4.747 12.025-11.235A12.006 12.006 0 0 0 11.979 0zm2.748 7.373c.691 0 1.25.572 1.25 1.275 0 .704-.559 1.276-1.25 1.276s-1.25-.572-1.25-1.276c0-.703.559-1.275 1.25-1.275z"/>
+                </svg>
+            </div>
+            <p class="login-desc">Zaloguj się swoim kontem Steam, aby uzyskać dostęp do szczegółowych statystyk, historii meczów oraz analizy Twoich osiągnięć.</p>
+        </div>
+
+        <a href="/auth/steam/login" class="steam-btn w-full inline-flex items-center justify-center gap-3 py-3 px-6 rounded-lg text-white font-semibold text-lg">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" class="h-12 w-12" alt="Steam logo">
+            Zaloguj przez Steam
+        </a>
+    </div>
+</body>
+</html>
