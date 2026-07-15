@@ -29,7 +29,7 @@
                 <!-- Right: Profile & Logout -->
                 <div class="flex items-center gap-4">
                     {% if logged_player_summary %}
-                        <a href="/dashboard" class="nav-profile">
+                        <a href="/player/{{ request.session.get('logged_steam_id') }}" class="nav-profile">
                             <span class="nav-profile-name hidden sm:block">
                                 {{ logged_player_summary.personaname }}
                             </span>

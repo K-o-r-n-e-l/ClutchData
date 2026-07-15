@@ -15,7 +15,7 @@
             <div class="navbar-content">
                 <!-- Left: Logo -->
                 <div class="flex items-center">
-                    <a href="/dashboard" class="brand-logo">
+                    <a href="/player/{{ request.session.get('logged_steam_id') }}" class="brand-logo">
                         ClutchDATA
                     </a>
                 </div>
@@ -27,7 +27,7 @@
                 <div class="flex items-center gap-4">
                     {% if player_summary %}
                     <div class="flex items-center gap-3">
-                        <a href="/dashboard" class="nav-profile">
+                        <a href="/player/{{ request.session.get('logged_steam_id') }}" class="nav-profile">
                             <span class="nav-profile-name hidden sm:block">
                                 {{ logged_player_summary.personaname }}
                             </span>
@@ -80,7 +80,7 @@
                                     {% for player in team.get('players', []) %}
                                     <tr>
                                         <td class="font-medium text-white">
-                                            <a href="/player/{{ player.get('player_id') }}" class="flex items-center gap-3 hover:text-emerald-400 transition-colors cursor-pointer group">
+                                            <a href="/faceit_search/{{ player.get('player_id') }}" class="flex items-center gap-3 hover:text-emerald-400 transition-colors cursor-pointer group">
                                                 {% set avatar_url = avatars.get(player.get('player_id')) %}
                                                 {% if avatar_url %}
                                                     <img src="{{ avatar_url }}" alt="Avatar" class="avatar-sm">

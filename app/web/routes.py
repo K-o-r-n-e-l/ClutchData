@@ -52,17 +52,17 @@ async def steam_callback(request: Request):
     request.session["steam_id"] = steam_id
     request.session["logged_steam_id"] = steam_id  # Store the logged-in Steam ID for reference
     
-    return RedirectResponse(url="/dashboard")
+    return RedirectResponse(url=f"/player/{steam_id}")
 
 @router.get("/auth/logout")
 async def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/")
 
-@router.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request):
-    steam_id = request.session.get("steam_id")
-    if not steam_id:
+@router.get("/player/{steam_id}", response_class=HTMLResponse)
+async def dashboard(request: Request, steam_id: str):
+    logged_steam_id = request.session.get("steam_id")
+    if not logged_steam_id:
         return RedirectResponse(url="/")
         
     # Fetch user stats from Steam API
@@ -90,7 +90,7 @@ async def dashboard(request: Request):
             tasks = [fetch_match_stats(client, m, headers, faceit_data) for m in base_history]
             faceit_history = await asyncio.gather(*tasks)
 
-    # Get hours played from Steam
+    
     hours_played = await hours_counter(client, api_key, steam_id)
 
     return templates.TemplateResponse(
@@ -109,12 +109,13 @@ async def dashboard(request: Request):
         }
     )
 
-@router.get("/player/{player_id}", response_class=HTMLResponse)
-async def player_dashboard(request: Request, player_id: str):
+
+
+@router.get("/faceit_search/{player_id}", response_class=RedirectResponse)
+async def faceit_search(request: Request, player_id: str):
     faceit_api_key = os.getenv("FACEIT_API_KEY")
     faceit_data = None
-    faceit_stats = None
-    faceit_history = None
+    
 
     if faceit_api_key:
         headers = {
@@ -122,47 +123,21 @@ async def player_dashboard(request: Request, player_id: str):
             "Accept": "application/json"
         }
         async with httpx.AsyncClient() as client:
-            faceit_data, faceit_stats, base_history = await load_faceit_data_by_id(headers, client, player_id)
-            if faceit_data:
-                tasks = [fetch_match_stats(client, m, headers, faceit_data) for m in base_history]
-                faceit_history = await asyncio.gather(*tasks)
-
+            faceit_data, _ , _ = await load_faceit_data_by_id(headers, client, player_id)
     steam_id = None
     if faceit_data:
         steam_id = await faceit_steam_id_validation(faceit_data)
     
-    player_summary = None
-    stats_data = None
-    hours_played = None
-    api_key = os.getenv("STEAM_API_KEY")
-    
-    if steam_id and api_key and api_key != "your_steam_api_key_here":
-        async with httpx.AsyncClient() as client:
-            player_summary, stats_data = await load_steam_data(client, api_key, steam_id)
-            hours_played = await hours_counter(client, api_key, steam_id)
 
-    return templates.TemplateResponse(
-        request=request,
-        name="dashboard.html",
-        context={
-            "logged_player_summary": request.session.get("logged_player_summary"),
-            "steam_id": steam_id,
-            "player_summary": player_summary,
-            "stats": stats_data,
-            "faceit_data": faceit_data,
-            "faceit_stats": faceit_stats,
-            "faceit_history": faceit_history,
-            "hours_played": hours_played,
-            "api_key_missing": not api_key or api_key == "your_steam_api_key_here"
-        }
-    )
+    return RedirectResponse(url=f"/player/{steam_id}",status_code=302)
+
 @router.get("/match/{match_id}", response_class=HTMLResponse)
 async def match_details(request: Request, match_id: str):
     steam_id = request.session.get("steam_id")
     if not steam_id:
         return RedirectResponse(url="/")
 
-    # Fetch user stats from Steam API for the navbar
+   
     api_key = os.getenv("STEAM_API_KEY")
     player_summary = None
     if api_key and api_key != "your_steam_api_key_here":
@@ -203,7 +178,9 @@ async def match_details(request: Request, match_id: str):
     )
 
 @router.post("/search", response_class=RedirectResponse)
-async def search_player(request: Request, steam_url: str = Form(...)):    
+async def search_player(request: Request, steam_url: str = Form(...)):
+    if not steam_id:                                                                                                                                                                                                                                                                                                                                                                                              
+        return RedirectResponse(url="/", status_code=302)      
     steam_id = steam_url.removeprefix("https://steamcommunity.com/profiles/")
     steam_id = steam_id.strip("/")
     if not steam_id.isdigit() or not len(steam_id) == 17:
