@@ -89,11 +89,14 @@ async def load_faceit_data_by_id(headers, client, faceit_player_id):
 
 
 async def faceit_steam_id_validation(faceit_data):
+    platforms = faceit_data.get("platforms") or {}
+    games = faceit_data.get("games") or {}
+    
     steam_id = (
             faceit_data.get("steam_id_64") or 
-            faceit_data.get("platforms", {}).get("steam") or 
-            faceit_data.get("games", {}).get("cs2", {}).get("game_player_id") or
-            faceit_data.get("games", {}).get("csgo", {}).get("game_player_id")
+            platforms.get("steam") or 
+            (games.get("cs2") or {}).get("game_player_id") or
+            (games.get("csgo") or {}).get("game_player_id")
         )
 
     if steam_id and steam_id.startswith("STEAM_"):
