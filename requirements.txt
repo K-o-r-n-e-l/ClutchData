@@ -6,3 +6,6 @@ jinja2
 httpx
 python-dotenv
 itsdangerous
+SQLAlchemy
+aiosqlite
+asyncpg

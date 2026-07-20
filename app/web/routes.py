@@ -6,6 +6,9 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from app.services.steam_stats import load_steam_data, hours_counter, validate_steam_login, resolve_steam_vanity_url
 from app.services.faceit_stats import load_faceit_data, fetch_match_stats, get_match_details, load_faceit_data_by_id, faceit_steam_id_validation
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.session import get_db
+from app.db.crud import save_faceit_elo
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -18,7 +21,7 @@ async def index(request: Request):
     # Check if user is already logged in
     steam_id = request.session.get("steam_id")
     if steam_id:
-        return RedirectResponse(url="/dashboard")
+        return RedirectResponse(url=f"/player/{steam_id}")
     return templates.TemplateResponse(request=request, name="index.html")
 
 @router.get("/auth/steam/login")
@@ -60,7 +63,7 @@ async def logout(request: Request):
     return RedirectResponse(url="/")
 
 @router.get("/player/{steam_id}", response_class=HTMLResponse)
-async def dashboard(request: Request, steam_id: str):
+async def dashboard(request: Request, steam_id: str, db: AsyncSession = Depends(get_db)):
     logged_steam_id = request.session.get("steam_id")
     if not logged_steam_id:
         return RedirectResponse(url="/")
@@ -89,6 +92,15 @@ async def dashboard(request: Request, steam_id: str):
             faceit_data, faceit_stats, base_history = await load_faceit_data(headers, client,  steam_id)
             tasks = [fetch_match_stats(client, m, headers, faceit_data) for m in base_history]
             faceit_history = await asyncio.gather(*tasks)
+            
+            # Zapisywanie do bazy
+            if faceit_data and faceit_data.get("games", {}).get("cs2"):
+                current_elo = faceit_data["games"]["cs2"].get("faceit_elo")
+                if current_elo:
+                    persona = faceit_data.get("nickname", "Unknown")
+                    if player_summary:
+                        persona = player_summary.get("personaname", persona)
+                    await save_faceit_elo(db, steam_id, persona, current_elo)
 
     
     hours_played = await hours_counter(client, api_key, steam_id)
@@ -179,12 +191,24 @@ async def match_details(request: Request, match_id: str):
 
 @router.post("/search", response_class=RedirectResponse)
 async def search_player(request: Request, steam_url: str = Form(...)):
-    if not steam_id:                                                                                                                                                                                                                                                                                                                                                                                              
-        return RedirectResponse(url="/", status_code=302)      
-    steam_id = steam_url.removeprefix("https://steamcommunity.com/profiles/")
-    steam_id = steam_id.strip("/")
-    if not steam_id.isdigit() or not len(steam_id) == 17:
-        steam_id = await resolve_steam_vanity_url(api_key=STEAM_API_KEY, vanity_name=steam_id)
+    if "https://steamcommunity.com/profiles/" in steam_url:
+        steam_url = steam_url.removeprefix("https://steamcommunity.com/profiles/")
+    elif "https://steamcommunity.com/id/" in steam_url:
+        steam_url = steam_url.removeprefix("https://steamcommunity.com/id/")
+        
+        
+    steam_id_or_vanity = steam_url.strip('/')
+        
+    if steam_id_or_vanity.isdigit() and len(steam_id_or_vanity) == 17:
+        steam_id = steam_id_or_vanity
+    else:
+        steam_id = await resolve_steam_vanity_url(api_key=os.getenv("STEAM_API_KEY"), vanity_name=steam_id_or_vanity)
 
-
-    return RedirectResponse(url=f"/player/{steam_id}", status_code=302)    
+    if not steam_id:
+        referer = request.headers.get("referer", "/")
+        if "?" in referer:
+            referer = referer.split("?")[0]
+        return RedirectResponse(url=f"{referer}?error=Invalid+Steam+profile", status_code=302)
+    
+    return RedirectResponse(url=f"/player/{steam_id}", status_code=302)
+                

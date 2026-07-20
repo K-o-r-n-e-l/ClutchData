@@ -20,8 +20,12 @@
                     </a>
                 </div>
                 <!-- Center: Info -->
-                <div class="hidden md:block text-slate-300 text-sm">
-                    Szczegóły meczu Faceit
+                <!-- Center: Search -->
+                <div class="hidden md:flex flex-1 justify-center px-8">
+                    <form action="/search" method="POST" class="search-form">
+                        <input type="text" name="steam_url" class="search-input" placeholder="Wklej link do profilu Steam lub SteamID">
+                        <button type="submit" class="search-btn">Szukaj</button>
+                    </form>
                 </div>
                 <!-- Right: Profile & Logout -->
                 <div class="flex items-center gap-4">
@@ -121,5 +125,15 @@
             </div>
         {% endif %}
     </main>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorMsg = urlParams.get('error');
+            if (errorMsg) {
+                alert(errorMsg.replace(/\+/g, ' '));
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+    </script>
 </body>
 </html>
