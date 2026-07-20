@@ -6,10 +6,12 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 # Na Render będzie to zewnętrzna baza, lokalnie - SQLite.
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./clutchdata.db")
 
-# Render domyślnie nadaje URL zaczynający się od "postgres://", 
+# Render nadaje URL zaczynający się od "postgres://" lub "postgresql://", 
 # ale SQLAlchemy wymaga wariantu asyncpg, czyli "postgresql+asyncpg://"
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith("postgresql+asyncpg://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
 # Tworzymy "silnik" łączący się z bazą
 engine = create_async_engine(DATABASE_URL, echo=False)
