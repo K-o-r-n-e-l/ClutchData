@@ -211,4 +211,130 @@ async def search_player(request: Request, steam_url: str = Form(...)):
         return RedirectResponse(url=f"{referer}?error=Invalid+Steam+profile", status_code=302)
     
     return RedirectResponse(url=f"/player/{steam_id}", status_code=302)
-                
+
+@router.get("/player/{steam_id}/stats", response_class=HTMLResponse)
+async def player_stats(request: Request, steam_id: str):
+    logged_steam_id = request.session.get("steam_id")
+    if not logged_steam_id:
+        return RedirectResponse(url="/")
+
+    api_key = os.getenv("STEAM_API_KEY")
+    faceit_api_key = os.getenv("FACEIT_API_KEY")
+    player_summary = None
+    faceit_data = None
+    faceit_stats = None
+    map_segments = []
+    weapon_stats = []
+
+    async with httpx.AsyncClient() as client:
+        # Steam data
+        if api_key and api_key != "your_steam_api_key_here":
+            player_summary, raw_stats = await load_steam_data(client, api_key, steam_id)
+
+            # Parse weapon stats from Steam
+            WEAPONS = [
+                ("ak47", "AK-47"), ("m4a1", "M4A1-S"), ("m4a1_silencer", "M4A4"),
+                ("awp", "AWP"), ("deagle", "Desert Eagle"), ("glock", "Glock-18"),
+                ("usp_silencer", "USP-S"), ("hkp2000", "P2000"), ("p250", "P250"),
+                ("cz75a", "CZ75-Auto"), ("tec9", "Tec-9"), ("fiveseven", "Five-SeveN"),
+                ("revolver", "R8 Revolver"), ("elite", "Dual Berettas"),
+                ("famas", "FAMAS"), ("galilar", "Galil AR"), ("aug", "AUG"),
+                ("sg556", "SG 553"), ("ssg08", "SSG 08"), ("g3sg1", "G3SG1"),
+                ("scar20", "SCAR-20"), ("mp9", "MP9"), ("mac10", "MAC-10"),
+                ("mp7", "MP7"), ("mp5sd", "MP5-SD"), ("ump45", "UMP-45"),
+                ("p90", "P90"), ("bizon", "PP-Bizon"), ("m249", "M249"),
+                ("negev", "Negev"), ("nova", "Nova"), ("mag7", "MAG-7"),
+                ("sawedoff", "Sawed-Off"), ("xm1014", "XM1014"), ("m3", "M3"),
+                ("knife", "Nóż"), ("taser", "Zeus x27"),
+            ]
+            
+            if raw_stats:
+                stats_lookup = {s["name"]: s["value"] for s in raw_stats}
+                for key, display_name in WEAPONS:
+                    kills = stats_lookup.get(f"total_kills_{key}", 0)
+                    shots = stats_lookup.get(f"total_shots_{key}", 0)
+                    hits = stats_lookup.get(f"total_hits_{key}", 0)
+                    if kills > 0 or shots > 0:
+                        accuracy = round((hits / shots * 100), 1) if shots > 0 else 0
+                        weapon_stats.append({
+                            "key": key,
+                            "name": display_name,
+                            "kills": kills,
+                            "shots": shots,
+                            "hits": hits,
+                            "accuracy": accuracy,
+                        })
+                # Sort by kills desc
+                weapon_stats.sort(key=lambda x: x["kills"], reverse=True)
+
+        # Faceit data
+        if faceit_api_key:
+            headers = {
+                "Authorization": f"Bearer {faceit_api_key}",
+                "Accept": "application/json"
+            }
+            faceit_data, faceit_stats, _ = await load_faceit_data(headers, client, steam_id)
+
+            # Extract map segments
+            if faceit_stats:
+                segments = faceit_stats.get("segments", [])
+                for seg in segments:
+                    if seg.get("type") == "Map":
+                        label = seg.get("label", "")
+                        s = seg.get("stats", {})
+                        map_segments.append({
+                            "map": label,
+                            "matches": int(s.get("Matches", 0)),
+                            "wins": int(s.get("Wins", 0)),
+                            "win_rate": float(s.get("Win Rate %", 0)),
+                            "kills": int(s.get("Kills", 0)),
+                            "deaths": int(s.get("Deaths", 0)),
+                            "assists": int(s.get("Assists", 0)),
+                            "kd": float(s.get("Average K/D Ratio", 0)),
+                            "kr": float(s.get("Average K/R Ratio", 0)),
+                            "adr": float(s.get("ADR", 0)),
+                            "hs_pct": float(s.get("Average Headshots %", 0)),
+                            "rounds": int(s.get("Rounds", 0)),
+                            "mvps": int(s.get("MVPs", 0)),
+                            "triple_kills": int(s.get("Triple Kills", 0)),
+                            "quadro_kills": int(s.get("Quadro Kills", 0)),
+                            "penta_kills": int(s.get("Penta Kills", 0)),
+                            # Clutch stats
+                            "entry_count": int(s.get("Total Entry Count", 0)),
+                            "entry_wins": int(s.get("Total Entry Wins", 0)),
+                            "entry_success_rate": float(s.get("Entry Success Rate", 0)),
+                            "v1_count": int(s.get("Total 1v1 Count", 0)),
+                            "v1_wins": int(s.get("Total 1v1 Wins", 0)),
+                            "v1_rate": float(s.get("1v1 Win Rate", 0)),
+                            "v2_count": int(s.get("Total 1v2 Count", 0)),
+                            "v2_wins": int(s.get("Total 1v2 Wins", 0)),
+                            "v2_rate": float(s.get("1v2 Win Rate", 0)),
+                            "v3_count": int(s.get("Total 1v3 Count", 0)),
+                            "v3_wins": int(s.get("Total 1v3 Wins", 0)),
+                            "v3_rate": float(s.get("1v3 Win Rate", 0)),
+                            "v4_count": int(s.get("Total 1v4 Count", 0)),
+                            "v4_wins": int(s.get("Total 1v4 Wins", 0)),
+                            "v4_rate": float(s.get("1v4 Win Rate", 0)),
+                            "v5_count": int(s.get("Total 1v5 Count", 0)),
+                            "v5_wins": int(s.get("Total 1v5 Wins", 0)),
+                            "v5_rate": float(s.get("1v5 Win Rate", 0)),
+                        })
+                # Sort by matches desc
+                map_segments.sort(key=lambda x: x["matches"], reverse=True)
+
+    # Lifetime faceit stats
+    faceit_lifetime = faceit_stats.get("lifetime", {}) if faceit_stats else {}
+
+    return templates.TemplateResponse(
+        request=request,
+        name="stats.html",
+        context={
+            "logged_player_summary": request.session.get("logged_player_summary"),
+            "steam_id": steam_id,
+            "player_summary": player_summary,
+            "faceit_data": faceit_data,
+            "faceit_lifetime": faceit_lifetime,
+            "map_segments": map_segments,
+            "weapon_stats": weapon_stats,
+        }
+    )

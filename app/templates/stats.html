@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Szczegółowe Statystyki - ClutchDATA</title>
+    <meta name="description" content="Zaawansowane statystyki CS2 gracza - mapy, bronie, clutche, entry fragi i więcej.">
+    <link rel="stylesheet" href="/static/main.css">
+    <link rel="stylesheet" href="/static/components.css">
+</head>
+<body class="bg-dashboard">
+
+    <!-- Navbar -->
+    <nav class="glass-panel navbar">
+        <div class="stats-nav-inner">
+            <div class="stats-nav-logo">
+                <a href="/" class="brand-logo" style="text-decoration:none">ClutchDATA</a>
+            </div>
+            <div class="stats-nav-search">
+                <form action="/search" method="POST" class="search-form">
+                    <input type="text" name="steam_url" class="search-input" placeholder="Wklej link do profilu Steam lub SteamID">
+                    <button type="submit" class="search-btn">Szukaj</button>
+                </form>
+            </div>
+            <div class="stats-nav-right">
+                {% if logged_player_summary %}
+                    <a href="/player/{{ request.session.get('logged_steam_id') }}" class="nav-profile">
+                        <span class="nav-profile-name">{{ logged_player_summary.personaname }}</span>
+                        <img src="{{ logged_player_summary.avatar }}" alt="Avatar" class="avatar-sm">
+                    </a>
+                {% endif %}
+                <a href="/auth/logout" class="btn-secondary">Wyloguj</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="stats-main">
+
+        
+        
+
+        <!-- Map filter bar -->
+        <div class="stats-topbar">
+            <a href="/player/{{ steam_id }}" class="btn-back">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Wróć do profilu
+            </a>
+            <div class="stats-topbar-middle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                <select id="mapFilter" class="map-filter-select" onchange="applyMapFilter(this.value)">
+                    <option value="all">Wszystkie mapy</option>
+                    {% for seg in map_segments %}
+                    <option value="{{ seg.map }}">{{ seg.map }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <span id="currentMapLabel" class="map-name-pill">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Wszystkie mapy
+            </span>
+        </div>
+
+        <!-- Main Grid: Left profile | Right stats -->
+        <div class="stats-page-grid">
+
+            <!-- ========== LEFT PANEL ========== -->
+            <div class="stats-profile-panel">
+
+                <!-- Profile Header -->
+                {% if player_summary %}
+                <div class="stats-profile-header">
+                    <img src="{{ player_summary.avatarfull }}" alt="{{ player_summary.personaname }}" class="stats-avatar">
+                    <div>
+                        <div class="stats-profile-name">{{ player_summary.personaname }}</div>
+                        {% if faceit_data %}
+                        <div class="stats-faceit-badge">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+                            FACEIT
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Faceit Rank Ring -->
+                {% if faceit_data and faceit_data.get('games') and faceit_data.get('games').get('cs2') %}
+                    {% set lvl = faceit_data.get('games').get('cs2').get('skill_level', 1) | int %}
+                    {% set elo = faceit_data.get('games').get('cs2').get('faceit_elo', 0) %}
+                    {% if lvl >= 2 and lvl <= 3 %}{% set ring_color = '#1CE500' %}{% elif lvl >= 4 and lvl <= 7 %}{% set ring_color = '#FFBA00' %}{% elif lvl >= 8 and lvl <= 9 %}{% set ring_color = '#FF5E00' %}{% elif lvl == 10 %}{% set ring_color = '#FE0000' %}{% else %}{% set ring_color = '#EEEEEE' %}{% endif %}
+                    <div class="stats-rank-ring">
+                        <div class="stats-rank-circle" style="box-shadow: 0 0 30px rgba(0,0,0,0.5)">
+                            <svg class="stats-rank-svg" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="#2a2a2a" stroke-width="9"></circle>
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="{{ ring_color }}" stroke-width="9" stroke-dasharray="264" stroke-dashoffset="{{ (10 - lvl) * 26 }}" stroke-linecap="round" style="filter: drop-shadow(0 0 6px {{ ring_color }})"></circle>
+                            </svg>
+                            <span class="stats-rank-number" style="text-shadow: 0 0 12px rgba(255,255,255,0.3)">{{ lvl }}</span>
+                        </div>
+                        <div class="stats-rank-elo">{{ "{:,}".format(elo) }} ELO</div>
+                        <div class="stats-rank-nick">{{ faceit_data.get('nickname', 'N/A') }}</div>
+                    </div>
+                {% endif %}
+
+                <!-- Mini stat cards -->
+                <div>
+                    <div class="stats-section-title">Statystyki ogólne (Faceit)</div>
+                    <div class="stats-mini-grid" id="miniStatsGrid">
+                        <div class="stats-mini-card">
+                            <div class="stats-mini-label">Mecze</div>
+                            <div class="stats-mini-value" id="miniMatches">{{ faceit_lifetime.get('Matches', 'N/A') }}</div>
+
+                        </div>
+                        <div class="stats-mini-card">
+                            <div class="stats-mini-label">Win Rate</div>
+                            <div class="stats-mini-value" id="miniWR">{{ faceit_lifetime.get('Win Rate %', 'N/A') }}%</div>
+                        </div>
+                        <div class="stats-mini-card">
+                            <div class="stats-mini-label">HS%</div>
+                            <div class="stats-mini-value" id="miniHS">{{ faceit_lifetime.get('Average Headshots %', 'N/A') }}%</div>
+                        </div>
+                        <div class="stats-mini-card">
+                            <div class="stats-mini-label">ADR</div>
+                            <div class="stats-mini-value" id="miniADR">{{ faceit_lifetime.get('ADR', 'N/A') }}</div>
+                        </div>
+                        <div class="stats-mini-card">
+                            <div class="stats-mini-label">K/D</div>
+                            <div class="stats-mini-value" id="miniKD">{{ faceit_lifetime.get('Average K/D Ratio', 'N/A') }}</div>
+                        </div>
+                        <div class="stats-mini-card">
+                            <div class="stats-mini-label">K/R</div>
+                            <div class="stats-mini-value" id="miniKR">{{ faceit_lifetime.get('Average K/R Ratio', 'N/A') }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rank evolution placeholder -->
+                <div class="rank-chart-placeholder">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 8px; opacity: 0.4; display:block"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    Historia zmian rangi<br><span style="color:#334155">– wkrótce –</span>
+                </div>
+            </div>
+
+            <!-- ========== RIGHT PANEL ========== -->
+            <div class="stats-right-panel">
+
+                <!-- Scrollable Stats Columns Panel -->
+                <div class="stats-columns-panel">
+                    <div class="stats-columns-header">
+                        <div class="stats-columns-header-title">Statystyki szczegółowe</div>
+                        <div class="stat-mode-toggle" id="statModeToggle">
+                            <button class="stat-mode-btn active" id="btnGeneral" onclick="switchMode('general')">Ogólne</button>
+                            <button class="stat-mode-btn" id="btnClutch" onclick="switchMode('clutch')">Clutch</button>
+                        </div>
+                    </div>
+                    <!-- General mode -->
+                    <div id="generalCols" class="stats-columns-scroll">
+                        <div class="stat-cols-row" id="generalColsRow"></div>
+                    </div>
+                    <!-- Clutch mode -->
+                    <div id="clutchCols" class="stats-columns-scroll" style="display:none">
+                        <div class="clutch-container" id="clutchColsRow"></div>
+                    </div>
+                </div>
+
+                <!-- Weapons Table -->
+                {% if weapon_stats %}
+                <div class="weapons-panel">
+                    <div class="weapons-panel-header">
+                        <span class="weapons-panel-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px;opacity:0.7"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                            Statystyki broni (Steam)
+                        </span>
+                    </div>
+                    <div class="weapons-table-wrapper custom-scrollbar">
+                        <table class="weapons-table" id="weaponsTable">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortWeapons('name')" id="th-name">Broń</th>
+                                    <th onclick="sortWeapons('kills')" id="th-kills" class="sort-active">Zabójstwa ↓</th>
+                                    <th onclick="sortWeapons('shots')" id="th-shots">Strzały</th>
+                                    <th onclick="sortWeapons('hits')" id="th-hits">Trafienia</th>
+                                    <th onclick="sortWeapons('accuracy')" id="th-accuracy">Celność</th>
+                                </tr>
+                            </thead>
+                            <tbody id="weaponsTableBody">
+                                {% for w in weapon_stats %}
+                                <tr data-kills="{{ w.kills }}" data-shots="{{ w.shots }}" data-hits="{{ w.hits }}" data-accuracy="{{ w.accuracy }}" data-name="{{ w.name }}">
+                                    <td>
+                                        <div class="weapon-name-cell">
+                                            <div class="weapon-icon-placeholder">
+                                                <img class="weapon-icon-img"
+                                                     src="https://cdn.csgostats.gg/weapon/{{ w.key }}.svg"
+                                                     onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'font-size:0.55rem;color:#475569;font-weight:700;\'>{{ w.key[:4] | upper }}</span>'"
+                                                     alt="{{ w.name }}"
+                                                     loading="lazy">
+                                            </div>
+                                            <span class="weapon-name-text">{{ w.name }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span style="font-weight:800; color:{% if w.kills >= 1000 %}#f87171{% elif w.kills >= 500 %}#fb923c{% elif w.kills >= 100 %}#fbbf24{% else %}#e2e8f0{% endif %}">
+                                            {{ "{:,}".format(w.kills) }}
+                                        </span>
+                                    </td>
+                                    <td>{{ "{:,}".format(w.shots) }}</td>
+                                    <td>{{ "{:,}".format(w.hits) }}</td>
+                                    <td>
+                                        <div class="accuracy-bar-wrapper">
+                                            <div class="accuracy-bar-bg">
+                                                <div class="accuracy-bar-fill" style="width:{{ [w.accuracy, 100] | min }}%"></div>
+                                            </div>
+                                            <span class="accuracy-pct">{{ w.accuracy }}%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% else %}
+                <div class="weapons-panel" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 2rem; text-align: center; border-style: dashed;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: #64748b; margin-bottom: 1rem;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <h3 style="color: #e2e8f0; font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">Statystyki broni są ukryte</h3>
+                    <p style="color: #94a3b8; font-size: 0.9rem; max-width: 400px; line-height: 1.6; margin-bottom: 1.5rem;">
+                        Aby odblokować pełne statystyki powiązane z broniami, gracz musi zmienić ustawienia prywatności na swoim profilu Steam.
+                    </p>
+                    <div style="background: rgba(15, 23, 42, 0.5); padding: 1rem 1.5rem; border-radius: 0.75rem; text-align: left; display: inline-block;">
+                        <div style="color: #cbd5e1; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Instrukcja:</div>
+                        <ol style="color: #94a3b8; font-size: 0.85rem; margin: 0; padding-left: 1.2rem; line-height: 1.7;">
+                            <li>Wejdź w <strong>Edytuj profil</strong> na Steam</li>
+                            <li>Wybierz zakładkę <strong>Ustawienia prywatności</strong></li>
+                            <li>Zmień <strong>Szczegóły gry</strong> na <strong>Publiczne</strong></li>
+                        </ol>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div><!-- end right panel -->
+        </div><!-- end main grid -->
+    </main>
+
+    <script>
+        const MAP_SEGMENTS = {{ map_segments | tojson }};
+
+        function applyMapFilter(mapValue) {
+            const label = document.getElementById('currentMapLabel');
+            if (mapValue === 'all') {
+                label.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Wszystkie mapy';
+                updateMiniCards(null);
+                renderStatColumns(null);
+            } else {
+                const seg = MAP_SEGMENTS.find(s => s.map === mapValue);
+                label.textContent = mapValue;
+                updateMiniCards(seg);
+                renderStatColumns(seg);
+            }
+        }
+
+        function getAggregated() {
+            if (MAP_SEGMENTS.length === 0) return null;
+            const tm = MAP_SEGMENTS.reduce((a, s) => a + s.matches, 0);
+            const tw = MAP_SEGMENTS.reduce((a, s) => a + s.wins, 0);
+            const tk = MAP_SEGMENTS.reduce((a, s) => a + s.kills, 0);
+            const td = MAP_SEGMENTS.reduce((a, s) => a + s.deaths, 0);
+            const ta = MAP_SEGMENTS.reduce((a, s) => a + s.assists, 0);
+            const tr = MAP_SEGMENTS.reduce((a, s) => a + s.rounds, 0);
+            const tmv = MAP_SEGMENTS.reduce((a, s) => a + s.mvps, 0);
+            const t3k = MAP_SEGMENTS.reduce((a, s) => a + s.triple_kills, 0);
+            const t4k = MAP_SEGMENTS.reduce((a, s) => a + s.quadro_kills, 0);
+            const t5k = MAP_SEGMENTS.reduce((a, s) => a + s.penta_kills, 0);
+            const tec = MAP_SEGMENTS.reduce((a, s) => a + s.entry_count, 0);
+            const tew = MAP_SEGMENTS.reduce((a, s) => a + s.entry_wins, 0);
+            const tv1c = MAP_SEGMENTS.reduce((a, s) => a + s.v1_count, 0);
+            const tv1w = MAP_SEGMENTS.reduce((a, s) => a + s.v1_wins, 0);
+            const tv2c = MAP_SEGMENTS.reduce((a, s) => a + s.v2_count, 0);
+            const tv2w = MAP_SEGMENTS.reduce((a, s) => a + s.v2_wins, 0);
+            const tv3c = MAP_SEGMENTS.reduce((a, s) => a + s.v3_count, 0);
+            const tv3w = MAP_SEGMENTS.reduce((a, s) => a + s.v3_wins, 0);
+            const tv4c = MAP_SEGMENTS.reduce((a, s) => a + s.v4_count, 0);
+            const tv4w = MAP_SEGMENTS.reduce((a, s) => a + s.v4_wins, 0);
+            const tv5c = MAP_SEGMENTS.reduce((a, s) => a + s.v5_count, 0);
+            const tv5w = MAP_SEGMENTS.reduce((a, s) => a + s.v5_wins, 0);
+            const w_adr = MAP_SEGMENTS.reduce((a, s) => a + s.adr * s.rounds, 0) / (tr || 1);
+            const w_hs = MAP_SEGMENTS.reduce((a, s) => a + s.hs_pct * s.matches, 0) / (tm || 1);
+            return {
+                matches: tm, wins: tw, win_rate: tm > 0 ? (tw / tm * 100) : 0,
+                kills: tk, deaths: td, assists: ta,
+                kd: td > 0 ? tk / td : 0, kr: tr > 0 ? tk / tr : 0,
+                adr: w_adr, hs_pct: w_hs, rounds: tr, mvps: tmv,
+                triple_kills: t3k, quadro_kills: t4k, penta_kills: t5k,
+                entry_count: tec, entry_wins: tew,
+                entry_success_rate: tec > 0 ? tew / tec : 0,
+                v1_count: tv1c, v1_wins: tv1w, v1_rate: tv1c > 0 ? tv1w / tv1c : 0,
+                v2_count: tv2c, v2_wins: tv2w, v2_rate: tv2c > 0 ? tv2w / tv2c : 0,
+                v3_count: tv3c, v3_wins: tv3w, v3_rate: tv3c > 0 ? tv3w / tv3c : 0,
+                v4_count: tv4c, v4_wins: tv4w, v4_rate: tv4c > 0 ? tv4w / tv4c : 0,
+                v5_count: tv5c, v5_wins: tv5w, v5_rate: tv5c > 0 ? tv5w / tv5c : 0
+            };
+        }
+
+        function fmtPct(val) { return (val !== null && val !== undefined) ? Math.round(parseFloat(val) * 100) + '%' : '—'; }
+        function fmtN(val) { return (val !== null && val !== undefined) ? Number(val).toLocaleString('pl') : '—'; }
+        function fmtF(val, d) { d = d !== undefined ? d : 2; return (val !== null && val !== undefined) ? parseFloat(val).toFixed(d) : '—'; }
+
+        function updateMiniCards(seg) {
+            const data = seg || getAggregated();
+            if (!data) return;
+            document.getElementById('miniKD').textContent = fmtF(data.kd);
+            document.getElementById('miniWR').textContent = fmtF(data.win_rate, 1) + '%';
+            document.getElementById('miniMatches').textContent = fmtN(data.matches);
+            document.getElementById('miniADR').textContent = fmtF(data.adr, 1);
+            document.getElementById('miniHS').textContent = fmtN(Math.round(data.hs_pct)) + '%';
+            document.getElementById('miniKR').textContent = fmtF(data.kr);
+        }
+
+        function renderStatColumns(seg) {
+            const data = seg || getAggregated();
+            if (!data) return;
+            const generalDefs = [
+                { label: 'Kille', value: fmtN(data.kills), accent: '' },
+                { label: 'Śmierci', value: fmtN(data.deaths), accent: '' },
+                { label: 'Asysty', value: fmtN(data.assists), accent: '' },
+                { label: 'K/D Ratio', value: fmtF(data.kd), accent: 'accent-blue' },
+                { label: 'K/R Ratio', value: fmtF(data.kr), accent: 'accent-blue' },
+                { label: 'ADR', value: fmtF(data.adr, 1), accent: 'accent-green' },
+                { label: 'ADR Całk.', value: data.rounds > 0 ? fmtN(Math.round(parseFloat(data.adr || 0) * data.rounds)) : '—', accent: '' },
+                { label: 'MVP', value: fmtN(data.mvps), accent: 'accent-orange' },
+                { label: 'Triple Kill', value: fmtN(data.triple_kills), accent: '' },
+                { label: 'Quadro Kill', value: fmtN(data.quadro_kills), accent: 'accent-purple' },
+                { label: 'ACE', value: fmtN(data.penta_kills), accent: 'accent-purple' },
+            ];
+            function buildGeneralRow(defs) {
+                return defs.map(d =>
+                    '<div class="stat-col-item"><div class="stat-col-label">' + d.label + '</div><div class="stat-col-value ' + d.accent + '">' + d.value + '</div></div>'
+                ).join('');
+            }
+            
+            function buildClutchCard(title, count, wins, rate) {
+                const ratePct = rate !== null && rate !== undefined ? Math.round(parseFloat(rate) * 100) : 0;
+                return `
+                <div class="clutch-row-item">
+                    <div class="clutch-row-title">${title}</div>
+                    <div class="clutch-stat">
+                        <div class="clutch-label">Attempts</div>
+                        <div class="clutch-value">${fmtN(count)}</div>
+                    </div>
+                    <div class="clutch-divider"></div>
+                    <div class="clutch-stat">
+                        <div class="clutch-label">Wins</div>
+                        <div class="clutch-value" style="color:#10b981">${fmtN(wins)}</div>
+                    </div>
+                    <div class="clutch-divider"></div>
+                    <div class="clutch-progress">
+                        <svg class="progress-ring" viewBox="0 0 36 36">
+                            <path class="ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="ring-fill" stroke-dasharray="${ratePct}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <text x="18" y="21.5" class="ring-text">${ratePct}%</text>
+                        </svg>
+                        <div class="clutch-label" style="margin-top:2px; margin-bottom:0;">Rate</div>
+                    </div>
+                </div>`;
+            }
+
+            const clutchHtml = 
+                buildClutchCard('Entry', data.entry_count, data.entry_wins, data.entry_success_rate) +
+                buildClutchCard('1v1', data.v1_count, data.v1_wins, data.v1_rate) +
+                buildClutchCard('1v2', data.v2_count, data.v2_wins, data.v2_rate);
+
+            document.getElementById('generalColsRow').innerHTML = buildGeneralRow(generalDefs);
+            document.getElementById('clutchColsRow').innerHTML = clutchHtml;
+        }
+
+        function switchMode(mode) {
+            document.getElementById('btnGeneral').classList.toggle('active', mode === 'general');
+            document.getElementById('btnClutch').classList.toggle('active', mode === 'clutch');
+            document.getElementById('generalCols').style.display = mode === 'general' ? '' : 'none';
+            document.getElementById('clutchCols').style.display = mode === 'clutch' ? '' : 'none';
+        }
+
+        let currentWeaponSort = 'kills';
+        let weaponSortAsc = false;
+
+        function sortWeapons(field) {
+            ['name', 'kills', 'shots', 'hits', 'accuracy'].forEach(f => {
+                const el = document.getElementById('th-' + f);
+                if (el) { el.className = ''; el.textContent = el.textContent.replace(/ [↑↓]$/, ''); }
+            });
+            if (field === currentWeaponSort) { weaponSortAsc = !weaponSortAsc; }
+            else { currentWeaponSort = field; weaponSortAsc = (field === 'name'); }
+            const thEl = document.getElementById('th-' + field);
+            if (thEl) { thEl.className = 'sort-active'; thEl.textContent += (weaponSortAsc ? ' ↑' : ' ↓'); }
+            const tbody = document.getElementById('weaponsTableBody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.sort((a, b) => {
+                let va = a.dataset[field === 'name' ? 'name' : field];
+                let vb = b.dataset[field === 'name' ? 'name' : field];
+                if (field !== 'name') { va = parseFloat(va); vb = parseFloat(vb); }
+                if (va < vb) return weaponSortAsc ? -1 : 1;
+                if (va > vb) return weaponSortAsc ? 1 : -1;
+                return 0;
+            });
+            rows.forEach(r => tbody.appendChild(r));
+            const sel = document.getElementById('weaponSortSelect');
+            if (sel) sel.value = field;
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            updateMiniCards(null);
+            renderStatColumns(null);
+        });
+    </script>
+</body>
+</html>
