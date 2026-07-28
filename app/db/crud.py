@@ -29,3 +29,15 @@ async def save_faceit_elo(db: AsyncSession, steam_id: str, persona_name: str, fa
         new_record = EloHistory(player_id=player.id, faceit_elo=faceit_elo)
         db.add(new_record)
         await db.commit()
+
+async def get_player_by_steam_id(db: AsyncSession, steam_id: str):
+    result = await db.execute(select(Player).filter(Player.steam_id == steam_id))
+    return result.scalars().first()
+
+async def enable_clutchdata_plus(db: AsyncSession, steam_id: str):
+    player = await get_player_by_steam_id(db, steam_id)
+    if player:
+        player.clutchdata_plus = True
+        await db.commit()
+        return True
+    return False

@@ -139,11 +139,25 @@
         </div>
 
         <!-- Stats CTA Button -->
-        <div class="text-center mb-6">
+        <div class="flex justify-center items-center gap-4 mb-6 flex-wrap">
             <a href="/player/{{ steam_id }}/stats" class="stats-cta-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                 Zobacz szczegółowe statystyki
             </a>
+            
+            {% if request.session.get('logged_steam_id') == steam_id %}
+                {% if not clutchdata_plus %}
+                <a href="/plus" class="stats-cta-btn" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.12) 0%, rgba(245, 158, 11, 0.08) 100%); border-color: rgba(234, 179, 8, 0.35); color: #fde047; box-shadow: 0 0 20px rgba(234, 179, 8, 0.05);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Aktywuj ClutchData+
+                </a>
+                {% else %}
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 font-semibold text-sm shadow-[0_0_15px_rgba(234,179,8,0.1)]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    ClutchData+ Aktywne
+                </div>
+                {% endif %}
+            {% endif %}
         </div>
 
         <!-- Match History -->
@@ -165,48 +179,7 @@
                     </thead>
                     <tbody>
                         {% if faceit_history %}
-                            {% for match in faceit_history %}
-                            <tr class="table-row-clickable {{ 'table-row-win' if match.get('player_stats', {}).get('Result') == '1' else 'table-row-loss' }}" onclick="window.location.href='/match/{{ match.get('match_id') }}'">
-                                <td>
-                                    {{ match.get('finished_at_str', match.get('finished_at', '?')) }}
-                                </td>
-                                <td>
-                                    {% set is_win = match.get('player_stats', {}).get('Result') == '1' %}
-                                    <span class="font-medium text-white flex items-center gap-3">
-                                        <span class="{{ 'badge-win' if is_win else 'badge-loss' }}">
-                                            {{ 'W' if is_win else 'L' }}
-                                        </span>
-                                        <span>
-                                            {{ match.get('results', {}).get('score', {}).get('faction1', '?') }} : {{ match.get('results', {}).get('score', {}).get('faction2', '?') }}
-                                        </span>
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <!-- API Faceit v4 nie zwraca dokładnego +/- ELO na mecz. Użyto przybliżenia wizualnego -->
-                                    <span class="font-bold {{ 'text-emerald-400' if is_win else 'text-red-400' }}">
-                                        {{ '~+25' if is_win else '~-25' }}
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    {% set kr = match.get('player_stats', {}).get('K/R Ratio', '0') | float %}
-                                    <span class="{{ 'rating-good' if kr >= 1.0 else 'rating-bad' }}">
-                                        {{ match.get('player_stats', {}).get('K/R Ratio', '?') }}
-                                    </span>
-                                </td>
-                                <td>
-                                    {{ match.get('player_stats', {}).get('Kills', '?') }} / {{ match.get('player_stats', {}).get('Deaths', '?') }} / {{ match.get('player_stats', {}).get('Assists', '?') }}
-                                </td>
-                                <td class="font-medium">
-                                    {{ match.get('player_stats', {}).get('K/D Ratio', '?') }}
-                                </td>
-                                <td class="font-medium">
-                                    {{ match.get('player_stats', {}).get('ADR', '?') }}
-                                </td>
-                                <td>
-                                    {{ match.get('map', 'N/A') }}
-                                </td>
-                            </tr>
-                            {% endfor %}
+                            {% include '_match_rows.html' %}
                         {% else %}
                             <!-- Mock Data to match layout -->
                             <tr>
@@ -246,6 +219,16 @@
                 </table>
             </div>
         </div>
+        
+        <!-- Przycisk Załaduj Więcej -->
+        {% if faceit_history %}
+        <div class="flex justify-center mt-6">
+            <button id="load-more-btn" class="stats-cta-btn bg-slate-800 hover:bg-slate-700 transition-colors border border-slate-700 shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 inline-block"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                Załaduj więcej meczów
+            </button>
+        </div>
+        {% endif %}
     </main>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -254,6 +237,41 @@
             if (errorMsg) {
                 alert(errorMsg.replace(/\+/g, ' '));
                 window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            
+            // Logic for Load More
+            const loadMoreBtn = document.getElementById('load-more-btn');
+            if (loadMoreBtn) {
+                let currentOffset = 10;
+                const steamId = "{{ steam_id }}";
+                
+                loadMoreBtn.addEventListener('click', async () => {
+                    loadMoreBtn.disabled = true;
+                    loadMoreBtn.innerHTML = 'Ładowanie...';
+                    
+                    try {
+                        const response = await fetch(`/api/player/${steamId}/history?offset=${currentOffset}`);
+                        if (response.ok) {
+                            const html = await response.text();
+                            if (html.trim() !== '') {
+                                const tbody = document.querySelector('.data-table tbody');
+                                tbody.insertAdjacentHTML('beforeend', html);
+                                currentOffset += 10;
+                                loadMoreBtn.disabled = false;
+                                loadMoreBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 inline-block"><polyline points="6 9 12 15 18 9"></polyline></svg>Załaduj więcej meczów';
+                            } else {
+                                loadMoreBtn.innerHTML = 'Brak więcej meczów';
+                            }
+                        } else {
+                            loadMoreBtn.innerHTML = 'Błąd pobierania';
+                            loadMoreBtn.disabled = false;
+                        }
+                    } catch (error) {
+                        console.error("Error fetching more matches:", error);
+                        loadMoreBtn.innerHTML = 'Błąd pobierania';
+                        loadMoreBtn.disabled = false;
+                    }
+                });
             }
         });
     </script>

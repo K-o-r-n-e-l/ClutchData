@@ -51,8 +51,11 @@
         {% if match_stats and match_stats.get('rounds') %}
             {% set round = match_stats.get('rounds')[0] %}
             
-            <div class="glass-panel rounded-2xl p-6 mb-8 text-center flex flex-col justify-center items-center">
-                <h1 class="text-3xl font-bold text-white mb-2">Mapa: {{ round.get('round_stats', {}).get('Map', 'Nieznana') }}</h1>
+            <div class="glass-panel rounded-2xl p-6 mb-8 text-center flex flex-col justify-center items-center gap-3">
+                <div class="flex items-center justify-center gap-4">
+                    <h1 class="text-3xl font-bold text-white mb-0">Mapa: {{ round.get('round_stats', {}).get('Map', 'Nieznana') }}</h1>
+                    <img src="https://raw.githubusercontent.com/Juknum/counter-strike-icons/main/cs2/panorama/images/map_icons/map_icon_{{ round.get('round_stats', {}).get('Map', 'Nieznana') }}.svg" alt="{{ round.get('round_stats', {}).get('Map', 'Nieznana') }}" class="map-icon w-12 h-12 drop-shadow-md">
+                </div>
                 <div class="text-xl text-slate-300 font-medium tracking-wide">Wynik końcowy: <span class="text-white">{{ round.get('round_stats', {}).get('Score', '?') }}</span></div>
             </div>
 

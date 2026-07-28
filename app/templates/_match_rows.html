@@ -1,0 +1,45 @@
+{% for match in faceit_history %}
+<tr class="table-row-clickable {{ 'table-row-win' if match.get('player_stats', {}).get('Result') == '1' else 'table-row-loss' }}" onclick="window.location.href='/match/{{ match.get('match_id') }}'">
+    <td>
+        {{ match.get('finished_at_str', match.get('finished_at', '?')) }}
+    </td>
+    <td>
+        {% set is_win = match.get('player_stats', {}).get('Result') == '1' %}
+        <span class="font-medium text-white flex items-center gap-3">
+            <span class="{{ 'badge-win' if is_win else 'badge-loss' }}">
+                {{ 'W' if is_win else 'L' }}
+            </span>
+            <span>
+                {{ match.get('results', {}).get('score', {}).get('faction1', '?') }} : {{ match.get('results', {}).get('score', {}).get('faction2', '?') }}
+            </span>
+        </span>
+    </td>
+    <td class="text-center">
+        <!-- API Faceit v4 nie zwraca dokładnego +/- ELO na mecz. Użyto przybliżenia wizualnego -->
+        <span class="font-bold {{ 'text-emerald-400' if is_win else 'text-red-400' }}">
+            {{ '~+25' if is_win else '~-25' }}
+        </span>
+    </td>
+    <td class="text-center">
+        {% set kr = match.get('player_stats', {}).get('K/R Ratio', '0') | float %}
+        <span class="{{ 'rating-good' if kr >= 1.0 else 'rating-bad' }}">
+            {{ match.get('player_stats', {}).get('K/R Ratio', '?') }}
+        </span>
+    </td>
+    <td>
+        {{ match.get('player_stats', {}).get('Kills', '?') }} / {{ match.get('player_stats', {}).get('Deaths', '?') }} / {{ match.get('player_stats', {}).get('Assists', '?') }}
+    </td>
+    <td class="font-medium">
+        {{ match.get('player_stats', {}).get('K/D Ratio', '?') }}
+    </td>
+    <td class="font-medium">
+        {{ match.get('player_stats', {}).get('ADR', '?') }}
+    </td>
+    <td>
+        <div class="flex items-center gap-2">
+            <img src="https://raw.githubusercontent.com/Juknum/counter-strike-icons/main/cs2/panorama/images/map_icons/map_icon_{{ match.get('map', 'N/A') }}.svg" alt="{{ match.get('map', 'N/A') }}" class="map-icon w-8 h-8">
+            <span>{{ match.get('map', 'N/A') }}</span>
+        </div>
+    </td>
+</tr>
+{% endfor %}

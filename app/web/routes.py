@@ -8,7 +8,7 @@ from app.services.steam_stats import load_steam_data, hours_counter, validate_st
 from app.services.faceit_stats import load_faceit_data, fetch_match_stats, get_match_details, load_faceit_data_by_id, faceit_steam_id_validation
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
-from app.db.crud import save_faceit_elo
+from app.db.crud import save_faceit_elo, get_player_by_steam_id, enable_clutchdata_plus
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -105,6 +105,11 @@ async def dashboard(request: Request, steam_id: str, db: AsyncSession = Depends(
     
     hours_played = await hours_counter(client, api_key, steam_id)
 
+    # Check if the currently viewed player has ClutchData+ enabled
+    player_db = await get_player_by_steam_id(db, steam_id)
+    clutchdata_plus = getattr(player_db, 'clutchdata_plus', False) if player_db else False
+
+
     return templates.TemplateResponse(
         request=request,
         name="dashboard.html",
@@ -117,6 +122,7 @@ async def dashboard(request: Request, steam_id: str, db: AsyncSession = Depends(
             "faceit_stats": faceit_stats,
             "faceit_history": faceit_history,
             "hours_played": hours_played,
+            "clutchdata_plus": clutchdata_plus,
             "api_key_missing": not api_key or api_key == "your_steam_api_key_here"
         }
     )
@@ -338,3 +344,35 @@ async def player_stats(request: Request, steam_id: str):
             "weapon_stats": weapon_stats,
         }
     )
+
+@router.get("/plus", response_class=HTMLResponse)
+async def plus_info(request: Request, db: AsyncSession = Depends(get_db)):
+    logged_steam_id = request.session.get("steam_id")
+    if not logged_steam_id:
+        return RedirectResponse(url="/")
+        
+    return templates.TemplateResponse(
+        request=request,
+        name="plus_info.html",
+        context={
+            "logged_player_summary": request.session.get("logged_player_summary"),
+            "steam_id": logged_steam_id
+        }
+    )
+
+@router.post("/plus/accept", response_class=RedirectResponse)
+async def plus_accept(request: Request, db: AsyncSession = Depends(get_db)):
+    logged_steam_id = request.session.get("steam_id")
+    if not logged_steam_id:
+        return RedirectResponse(url="/")
+        
+    # Aktywacja ClutchData+
+    success = await enable_clutchdata_plus(db, logged_steam_id)
+    if not success:
+        # Prawdopodobnie gracz nie ma jeszcze profilu w bazie (np. brak powiązania z faceit w naszej bazie),
+        from app.db.models import Player
+        player = Player(steam_id=logged_steam_id, persona_name=request.session.get("logged_player_summary", {}).get("personaname", ""), clutchdata_plus=True)
+        db.add(player)
+        await db.commit()
+        
+    return RedirectResponse(url=f"/player/{logged_steam_id}", status_code=302)

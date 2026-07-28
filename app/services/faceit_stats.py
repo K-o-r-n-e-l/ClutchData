@@ -1,10 +1,14 @@
 import datetime
-async def load_faceit_data(headers, client, steam_id):
+async def load_faceit_data(headers, client, steam_id, offset=0, limit=10):
     
     # 2a. Get Faceit Player Info via SteamID
     # Note: We use game_player_id parameter to find the user by their steam64 id
     faceit_player_url = f"https://open.faceit.com/data/v4/players?game=cs2&game_player_id={steam_id}"
     faceit_resp = await client.get(faceit_player_url, headers=headers)
+    
+    faceit_data = None
+    faceit_stats = None
+    base_history = []
     
     if faceit_resp.status_code == 200:
         faceit_data = faceit_resp.json()
@@ -16,8 +20,8 @@ async def load_faceit_data(headers, client, steam_id):
         if stats_resp.status_code == 200:
             faceit_stats = stats_resp.json()
             
-        # 2c. Get Faceit Match History (Last 10 matches)
-        faceit_history_url = f"https://open.faceit.com/data/v4/players/{faceit_player_id}/history?game=cs2&offset=0&limit=10"
+        # 2c. Get Faceit Match History
+        faceit_history_url = f"https://open.faceit.com/data/v4/players/{faceit_player_id}/history?game=cs2&offset={offset}&limit={limit}"
         history_resp = await client.get(faceit_history_url, headers=headers)
         if history_resp.status_code == 200:
             base_history = history_resp.json().get("items", [])
