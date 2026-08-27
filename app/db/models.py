@@ -15,7 +15,7 @@ class Player(Base):
     # Podstawowe info, by łatwiej szukać po bazie
     persona_name = Column(String, nullable=True)
     
-    # Flaga dla subskrybentów ClutchData+ (śledzenie meczów przez webhooki)
+    # Flaga dla subskrybentów ClutchData+ (dostęp do analizy powtórek demo)
     clutchdata_plus = Column(Boolean, default=False)
     
     # Relacje
@@ -45,6 +45,7 @@ class Match(Base):
     map_name = Column(String, nullable=True)
     started_at = Column(DateTime, nullable=True)
     finished_at = Column(DateTime, nullable=True)
+    is_analyzed = Column(Boolean, default=False)
     
     stats = relationship("MatchStatistic", back_populates="match", cascade="all, delete-orphan")
     rounds = relationship("MatchRound", back_populates="match", cascade="all, delete-orphan")
@@ -61,6 +62,7 @@ class MatchStatistic(Base):
 
     # Obliczony z algorytmu dla dema
     clutchdata_rating = Column(Float, default=0.0)
+    ClutchRating = Column(Float, default=0.0)  # Ostateczny rating ClutchData dla tego gracza w tym meczu
     
     # Statystyki z dema: entry
     entry_attempts = Column(Integer, default=0)
@@ -73,7 +75,6 @@ class MatchStatistic(Base):
     clutch_1v4_attempts = Column(Integer, default=0)
     clutch_1v5_attempts = Column(Integer, default=0)
     
-    
     clutch_1v1_wins = Column(Integer, default=0)
     clutch_1v2_wins = Column(Integer, default=0)
     clutch_1v3_wins = Column(Integer, default=0)
@@ -85,6 +86,12 @@ class MatchStatistic(Base):
     utility_damage = Column(Integer, default=0)  # Obrażenia zadane przez utility (HE, molly)
     enemies_flashed = Column(Integer, default=0)  # Realna liczba oślepionych przeciwników
     flash_assists = Column(Integer, default=0)  # Liczba zabójstw przeciwników, którzy zostali oślepieni przez gracza
+    kills = Column(Integer, default=0)
+    deaths = Column(Integer, default=0)
+    assists = Column(Integer, default=0)
+    adr = Column(Float, default=0.0)
+    total_damage = Column(Float, default=0.0)
+    
 
     # Relacje zwrotne
     match = relationship("Match", back_populates="stats")

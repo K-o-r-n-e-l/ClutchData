@@ -13,8 +13,9 @@ if DATABASE_URL.startswith("postgres://"):
 elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith("postgresql+asyncpg://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
+connect_args = {"timeout": 30} if "sqlite" in DATABASE_URL else {}
 # Tworzymy "silnik" łączący się z bazą
-engine = create_async_engine(DATABASE_URL, echo=False)
+engine = create_async_engine(DATABASE_URL, echo=False, connect_args=connect_args)
 
 # Fabryka sesji - sesja to takie okienko, przez które rozmawiamy z bazą w trakcie jednego zapytania użytkownika na stronie
 SessionLocal = sessionmaker(

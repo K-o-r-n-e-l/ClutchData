@@ -1,35 +1,20 @@
-from fastapi import APIRouter, Request, BackgroundTasks
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-from app.schemas.player import PlayerStatsResponse
-from app.services.stats import get_player_stats
-from app.services.faceit_stats import load_faceit_data, fetch_match_stats
 import os
 import httpx
 import asyncio
+from fastapi import APIRouter, Request, Depends
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.schemas.player import PlayerStatsResponse
+from app.services.faceit_stats import load_faceit_data, fetch_match_stats
+from app.services.demo_service import analyze_match_demo
+from app.db.session import get_db
+from app.db.crud import get_player_by_steam_id
 
 templates = Jinja2Templates(directory="app/templates")
 
 router = APIRouter(prefix="/api")
-from app.services.demo_worker import process_match_background
-
-@router.post("/webhooks/faceit")
-async def faceit_webhook(request: Request, background_tasks: BackgroundTasks):
-    # Krok 1: Odbieramy "paczkę" od Faceit
-    payload = await request.json()
-    
-    # Krok 2: Sprawdzamy co to za zdarzenie (interesuje nas tylko koniec meczu)
-    event_name = payload.get("event")
-    
-    if event_name == "match_status_finished":
-        match_id = payload.get("payload", {}).get("id")
-        print(f"🎉 Faceit przysłał webhook o zakończonym meczu! ID Meczu: {match_id}")
-        
-        # Odsyłamy proces pobierania dema, analizy i czyszczenia pliku do TŁA!
-        # Faceit otrzyma natychmiast status 200 OK
-        background_tasks.add_task(process_match_background, match_id)
-        
-    return {"status": "ok", "message": "Webhook odebrany! Analiza odbywa się w tle."}
 
 @router.get("/player/{steam_id}/history", response_class=HTMLResponse)
 async def get_player_history(request: Request, steam_id: str, offset: int = 10):
@@ -56,3 +41,22 @@ async def get_player_history(request: Request, steam_id: str, offset: int = 10):
         name="_match_rows.html",
         context={"faceit_history": faceit_history}
     )
+
+@router.post("/match/{match_id}/analyze")
+async def api_analyze_match(request: Request, match_id: str, db: AsyncSession = Depends(get_db)):
+    logged_steam_id = request.session.get("logged_steam_id") or request.session.get("steam_id")
+    if not logged_steam_id:
+        return JSONResponse(status_code=401, content={"success": False, "error": "Musisz być zalogowany, aby analizować mecze."})
+
+    player_db = await get_player_by_steam_id(db, logged_steam_id)
+    clutchdata_plus = getattr(player_db, 'clutchdata_plus', False) if player_db else False
+    if not clutchdata_plus:
+        return JSONResponse(status_code=403, content={"success": False, "error": "Funkcja wymaga aktywnej subskrypcji ClutchData+."})
+
+    faceit_api_key = os.getenv("FACEIT_API_KEY")
+    result = await analyze_match_demo(db, match_id, faceit_api_key)
+    
+    if result.get("success"):
+        return JSONResponse(content=result)
+    else:
+        return JSONResponse(status_code=400, content=result)

@@ -8,7 +8,9 @@ from app.services.steam_stats import load_steam_data, hours_counter, validate_st
 from app.services.faceit_stats import load_faceit_data, fetch_match_stats, get_match_details, load_faceit_data_by_id, faceit_steam_id_validation
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
-from app.db.crud import save_faceit_elo, get_player_by_steam_id, enable_clutchdata_plus
+from app.db.crud import save_faceit_elo, get_player_by_steam_id, enable_clutchdata_plus, is_match_analyzed, get_full_analyzed_match_data
+from urllib.parse import quote_plus
+from app.services.demo_service import analyze_match_demo, enrich_analyzed_teams
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -149,18 +151,19 @@ async def faceit_search(request: Request, player_id: str):
 
     return RedirectResponse(url=f"/player/{steam_id}",status_code=302)
 
+
+
 @router.get("/match/{match_id}", response_class=HTMLResponse)
-async def match_details(request: Request, match_id: str):
-    steam_id = request.session.get("steam_id")
-    if not steam_id:
+async def match_details(request: Request, match_id: str, db: AsyncSession = Depends(get_db)):
+    logged_steam_id = request.session.get("logged_steam_id") or request.session.get("steam_id")
+    if not logged_steam_id:
         return RedirectResponse(url="/")
 
-   
     api_key = os.getenv("STEAM_API_KEY")
     player_summary = None
     if api_key and api_key != "your_steam_api_key_here":
         async with httpx.AsyncClient() as client:
-            player_summary, _ = await load_steam_data(client, api_key, steam_id)
+            player_summary, _ = await load_steam_data(client, api_key, logged_steam_id)
 
     faceit_api_key = os.getenv("FACEIT_API_KEY")
     match_info, match_stats = {}, {}
@@ -181,27 +184,72 @@ async def match_details(request: Request, match_id: str):
                 if p_id:
                     avatars[p_id] = player.get("avatar", "")
 
+    # Sprawdzenie uprawnień ClutchData+ zalogowanego użytkownika
+    player_db = await get_player_by_steam_id(db, logged_steam_id)
+    clutchdata_plus = getattr(player_db, 'clutchdata_plus', False) if player_db else False
+
+    # Sprawdzenie czy ten mecz był już przeanalizowany w bazie
+    is_analyzed = await is_match_analyzed(db, match_id)
+    analysis_data = await get_full_analyzed_match_data(db, match_id) if is_analyzed else None
+    if analysis_data:
+        enrich_analyzed_teams(analysis_data, match_info, match_stats, avatars)
+
+    # Sprawdzenie czy mecz ma dostępne demo z Faceit
+    has_demo = bool(match_info.get("demo_url"))
+    
+
+
     return templates.TemplateResponse(
         request=request,
         name="match.html",
         context={
-            "logged_player_summary": request.session.get("logged_player_summary"),
-            "steam_id": steam_id,
+            "logged_player_summary": request.session.get("logged_player_summary") or player_summary,
+            "steam_id": logged_steam_id,
             "player_summary": player_summary,
             "match_info": match_info,
             "match_stats": match_stats,
             "match_id": match_id,
-            "avatars": avatars
+            "avatars": avatars,
+            "clutchdata_plus": clutchdata_plus,
+            "is_analyzed": is_analyzed,
+            "analysis_data": analysis_data,
+            "has_demo": has_demo,
         }
     )
 
-@router.post("/search", response_class=RedirectResponse)
-async def search_player(request: Request, steam_url: str = Form(...)):
+@router.post("/match/{match_id}/analyze")
+async def analyze_match(request: Request, match_id: str, db: AsyncSession = Depends(get_db)):
+    logged_steam_id = request.session.get("logged_steam_id") or request.session.get("steam_id")
+    if not logged_steam_id:
+        return RedirectResponse(url="/", status_code=302)
+
+    player_db = await get_player_by_steam_id(db, logged_steam_id)
+    clutchdata_plus = getattr(player_db, 'clutchdata_plus', False) if player_db else False
+    if not clutchdata_plus:
+        return RedirectResponse(url=f"/match/{match_id}?error=Wymagana+aktywacja+ClutchData%2B", status_code=302)
+
+    faceit_api_key = os.getenv("FACEIT_API_KEY")
+    result = await analyze_match_demo(db, match_id, faceit_api_key)
+
+    if result.get("success"):
+        return RedirectResponse(url=f"/match/{match_id}?success=Analiza+ClutchData%2B+zako%C5%84czona+sukcesem!", status_code=302)
+    else:
+        err = result.get("error", "Wystąpił nieoczekiwany błąd podczas analizy meczu.")
+        return RedirectResponse(url=f"/match/{match_id}?error={quote_plus(err)}", status_code=302)
+
+@router.get("/search", response_class=RedirectResponse)
+async def search_player(request: Request, steam_url: str = ""):
+    steam_url = (steam_url or "").strip()
+    if not steam_url:
+        referer = request.headers.get("referer", "/")
+        if "?" in referer:
+            referer = referer.split("?")[0]
+        return RedirectResponse(url=f"{referer}?error=Nie+podano+profilu+Steam", status_code=302)
+
     if "https://steamcommunity.com/profiles/" in steam_url:
         steam_url = steam_url.removeprefix("https://steamcommunity.com/profiles/")
     elif "https://steamcommunity.com/id/" in steam_url:
         steam_url = steam_url.removeprefix("https://steamcommunity.com/id/")
-        
         
     steam_id_or_vanity = steam_url.strip('/')
         
@@ -217,6 +265,11 @@ async def search_player(request: Request, steam_url: str = Form(...)):
         return RedirectResponse(url=f"{referer}?error=Invalid+Steam+profile", status_code=302)
     
     return RedirectResponse(url=f"/player/{steam_id}", status_code=302)
+
+# Opcjonalny fallback dla starych formularzy POST (np. niezaktualizowany cache przeglądarki)
+@router.post("/search", response_class=RedirectResponse)
+async def search_player_post(request: Request, steam_url: str = Form("")):
+    return await search_player(request, steam_url=steam_url)
 
 @router.get("/player/{steam_id}/stats", response_class=HTMLResponse)
 async def player_stats(request: Request, steam_id: str):

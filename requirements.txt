@@ -10,3 +10,8 @@ SQLAlchemy
 aiosqlite
 asyncpg
 python-multipart
+pandas
+numpy
+demoparser2
+zstandard
+pyarrow==18.1.0
