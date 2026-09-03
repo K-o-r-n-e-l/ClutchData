@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Szczegóły Meczu - {{ match_id }} | ClutchDATA</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/static/main.css">
-    <link rel="stylesheet" href="/static/components.css">
+    <link rel="stylesheet" href="/static/main.css?v=2.4">
     <style>
         .tab-btn {
             padding: 0.6rem 1.25rem;
@@ -73,18 +72,13 @@
 <body class="bg-dashboard text-slate-200 font-sans min-h-screen">
     <!-- Navbar -->
     <nav class="glass-panel navbar">
-        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8">
             <div class="navbar-content">
                 <!-- Left: Logo -->
                 <div class="flex items-center gap-3">
                     <a href="/player/{{ steam_id }}" class="brand-logo">
                         ClutchDATA
                     </a>
-                    {% if clutchdata_plus %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                        PLUS
-                    </span>
-                    {% endif %}
                 </div>
                 <!-- Center: Search -->
                 <div class="hidden md:flex flex-1 justify-center px-8">
@@ -113,7 +107,7 @@
         </div>
     </nav>
 
-    <main class="max-w-[1300px] mx-auto px-4 py-8">
+    <main class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         <!-- Alerts container -->
         <div id="alertContainer"></div>
@@ -124,28 +118,28 @@
             {% set match_score = round.get('round_stats', {}).get('Score', '?') %}
 
             <!-- Match Header Card -->
-            <div class="glass-panel rounded-2xl p-6 mb-6 shadow-xl border border-slate-700/60 relative overflow-hidden">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-                    <div class="flex items-center gap-5">
+            <div class="match-header-card">
+                <div class="match-header-content">
+                    <div class="match-header-left">
                         <div class="relative">
                             <img src="https://raw.githubusercontent.com/Juknum/counter-strike-icons/main/cs2/panorama/images/map_icons/map_icon_{{ map_name }}.svg" 
                                  alt="{{ map_name }}" 
                                  onerror="this.src='https://assets.faceit-cdn.net/third_party/games/ce652bd4-0abb-4c90-9936-1133965ca38b/assets/votables/7c17caa9-64a6-4496-8a0b-885e0f038d79_1695819126962.jpeg'"
-                                 class="w-16 h-16 rounded-xl bg-slate-800/80 p-2 border border-slate-700 shadow-md">
+                                 class="match-map-icon">
                         </div>
                         <div>
-                            <div class="flex items-center gap-2">
-                                <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{{ map_name }}</h1>
+                            <div class="match-title-group">
+                                <h1 class="match-map-title">{{ map_name }}</h1>
                                 {% if is_analyzed %}
-                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                <span class="match-status-badge">
                                     ✓ Analiza Demo Gotowa
                                 </span>
                                 {% endif %}
                             </div>
-                            <p class="text-slate-400 text-sm mt-1 flex items-center gap-2">
+                            <p class="match-meta-text">
                                 <span>ID: <code class="text-slate-300 font-mono text-xs">{{ match_id }}</code></span>
                                 <span>•</span>
-                                <a href="https://www.faceit.com/en/cs2/room/{{ match_id }}" target="_blank" class="text-sky-400 hover:text-sky-300 hover:underline inline-flex items-center gap-1 text-xs">
+                                <a href="https://www.faceit.com/en/cs2/room/{{ match_id }}" target="_blank" class="match-faceit-link">
                                     Profil Faceit
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                                 </a>
@@ -154,9 +148,9 @@
                     </div>
 
                     <!-- Score box -->
-                    <div class="flex flex-col items-center justify-center bg-slate-900/80 px-8 py-3 rounded-xl border border-slate-700/80 shadow-inner">
-                        <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Wynik końcowy</span>
-                        <span class="text-3xl font-black text-white tracking-wide mt-0.5">{{ match_score }}</span>
+                    <div class="match-final-score-box">
+                        <span class="match-final-score-label">Wynik końcowy</span>
+                        <span class="match-final-score-val">{{ match_score }}</span>
                     </div>
                 </div>
             </div>
@@ -165,8 +159,11 @@
             <div class="mb-8">
                 {% if is_analyzed %}
                     <!-- Already analyzed banner -->
-                    <div class="glass-panel rounded-2xl p-5 border border-emerald-500/30 bg-emerald-950/20 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+                    <div class="match-banner-analyzed">
                         <div class="flex items-center gap-4">
+                            <div class="match-banner-analyzed-icon">
+                                ✓
+                            </div>
                             <div>
                                 <h3 class="text-base font-bold text-white flex items-center gap-2">
                                     Powtórka przeanalizowana przez ClutchData+
@@ -176,85 +173,106 @@
                                 </p>
                             </div>
                         </div>
-                        <form id="reanalyzeForm" action="/match/{{ match_id }}/analyze" method="POST" class="flex-shrink-0">
-                            <button type="submit" id="btnReanalyze" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-600 transition flex items-center gap-2">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                Przeanalizuj ponownie
-                            </button>
-                        </form>
+                        <button type="button" onclick="document.getElementById('reuploadSection').classList.toggle('hidden')" class="btn-reupload-toggle">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            Wgraj plik ponownie
+                        </button>
+                    </div>
+
+                    <!-- Reupload Dropzone (hidden by default) -->
+                    <div id="reuploadSection" class="hidden mt-4 glass-panel rounded-2xl p-6 border border-sky-500/30 bg-slate-900/80 shadow-xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                                <span>📁</span> Wgraj nową powtórkę dla tego meczu
+                            </h4>
+                            <button type="button" onclick="document.getElementById('reuploadSection').classList.add('hidden')" class="text-slate-400 hover:text-white text-xs font-bold">✕ Zamknij</button>
+                        </div>
+                        <div id="dropzoneAreaReupload" class="dropzone-container">
+                            <input type="file" id="demoFileInputReupload" accept=".dem,.zst,.gz" class="hidden">
+                            <div class="dropzone-icon-box">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                            </div>
+                            <h4 class="dropzone-title-text">Przeciągnij plik .dem / .zst tutaj</h4>
+                            <p class="dropzone-subtitle-text">lub <span class="text-sky-400 font-semibold underline">wybierz z dysku</span> (max. 350 MB)</p>
+                        </div>
                     </div>
 
                 {% elif clutchdata_plus %}
-                    <!-- User has PLUS and can analyze now -->
-                    <div class="glass-panel rounded-2xl p-6 border border-sky-500/40 bg-gradient-to-r from-sky-950/30 via-slate-900/50 to-emerald-950/20 shadow-xl">
-                        <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
+                    <!-- User has PLUS and can analyze via File Upload -->
+                    <div class="match-banner-plus-upload">
+                        <div class="flex flex-col sm:flex-row items-start justify-between gap-4">
                             <div class="flex items-start gap-4">
-                                <div class="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-3xl flex-shrink-0 text-sky-400 shadow-lg">
+                                <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-2xl flex-shrink-0 text-sky-400 shadow-lg">
                                     ⚡
                                 </div>
                                 <div>
                                     <div class="flex items-center gap-2">
-                                        <h2 class="text-xl font-bold text-white">ClutchData+ Analiza Powtórki Meczu</h2>
+                                        <h2 class="text-lg sm:text-xl font-bold text-white">ClutchData+ Analiza Powtórki Meczu</h2>
                                         <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">
                                             Dostępne w Twoim pakiecie
                                         </span>
                                     </div>
-                                    <p class="text-sm text-slate-300 mt-1 max-w-2xl">
-                                        Pobierz oficjalny plik powtórki (.dem) z serwerów Faceit i uruchom zaawansowany parser ClutchData. Obliczymy realny <strong>ClutchRating</strong>, trade kille, pojedynki entry, utility damage oraz przebieg każdej rundy.
+                                    <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
+                                        Pobierz powtórkę z Faceit (przycisk <strong>„Watch Demo”</strong> w pokoju meczu) i upuść plik poniżej. Parser ClutchData wyliczy realny <strong>ClutchRating</strong>, trade kille, pojedynki entry i statystyki każdej rundy.
                                     </p>
                                 </div>
                             </div>
-                            <div class="flex-shrink-0 w-full lg:w-auto">
-                                <form id="analyzeForm" action="/match/{{ match_id }}/analyze" method="POST">
-                                    <button type="submit" id="btnAnalyze" class="w-full lg:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-400 hover:to-emerald-400 text-slate-950 font-extrabold text-sm shadow-lg shadow-sky-500/20 transition-all flex items-center justify-center gap-2.5 cursor-pointer">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        <span>Pobierz powtórkę i analizuj</span>
-                                    </button>
-                                </form>
-                            </div>
                         </div>
 
-                        <!-- Loading State (hidden by default) -->
-                        <div id="analyzeProgress" class="hidden mt-5 pt-5 border-t border-slate-700/50">
+                        <!-- Drag & Drop Upload Dropzone -->
+                        <div id="dropzoneArea" class="dropzone-container">
+                            <input type="file" id="demoFileInput" accept=".dem,.zst,.gz" class="hidden">
+                            <div class="dropzone-icon-box">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                            </div>
+                            <h3 class="dropzone-title-text">Przeciągnij i upuść plik powtórki tutaj</h3>
+                            <p class="dropzone-subtitle-text">Obsługiwane formaty: <strong class="text-slate-300">.dem</strong>, <strong class="text-slate-300">.dem.zst</strong> lub <strong class="text-slate-300">.dem.gz</strong></p>
+                            <span class="dropzone-btn-pill">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                Wybierz plik z dysku
+                            </span>
+                            <span id="selectedFileName" class="hidden mt-3 text-xs font-bold text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-lg border border-emerald-500/30"></span>
+                        </div>
+
+                        <!-- Upload Progress State (hidden by default) -->
+                        <div id="analyzeProgress" class="upload-progress-card hidden">
                             <div class="flex items-center gap-3 text-sky-300 text-sm font-semibold">
                                 <svg class="spin-loader w-5 h-5 text-sky-400" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                                 </svg>
-                                <span id="progressStatusText">Pobieranie powtórki demo z Faceit i analizowanie statystyk... Proszę czekać (ok. 5-10 sekund).</span>
+                                <span id="progressStatusText">Wysyłanie pliku powtórki demo... Proszę czekać.</span>
                             </div>
-                            <div class="w-full bg-slate-800 rounded-full h-2 mt-3 overflow-hidden">
-                                <div class="bg-gradient-to-r from-sky-400 to-emerald-400 h-2 rounded-full w-full animate-pulse"></div>
+                            <div class="upload-progress-bar-track">
+                                <div id="progressBarFill" class="upload-progress-bar-fill"></div>
                             </div>
                         </div>
                     </div>
 
                 {% else %}
                     <!-- User does NOT have PLUS -->
-                    <div class="glass-panel rounded-2xl p-6 border border-amber-500/30 bg-gradient-to-r from-amber-950/20 via-slate-900/50 to-slate-900/80 shadow-lg">
-                        <div class="flex flex-col sm:flex-row items-center justify-between gap-6">
-                            <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-2xl flex-shrink-0 text-amber-400">
-                                    🔒
-                                </div>
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <h3 class="text-lg font-bold text-white">Odblokuj Zaawansowaną Analizę Demo (ClutchData+)</h3>
-                                        <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                                            PREMIUM
-                                        </span>
-                                    </div>
-                                    <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
-                                        Chcesz poznać realny <strong>ClutchRating</strong>, trade kille, pojedynki entry (opening frags) i skuteczność clutchy 1vX w tym meczu? Aktywuj ClutchData+.
-                                    </p>
-                                </div>
+                    <div class="match-banner-plus-locked">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-2xl flex-shrink-0 text-amber-400">
+                                🔒
                             </div>
-                            <div class="flex-shrink-0 w-full sm:w-auto">
-                                <a href="/plus" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition">
-                                    <span>Aktywuj ClutchData+</span>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                                </a>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-lg font-bold text-white">Odblokuj Zaawansowaną Analizę Demo (ClutchData+)</h3>
+                                    <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                        PREMIUM
+                                    </span>
+                                </div>
+                                <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
+                                    Chcesz poznać realny <strong>ClutchRating</strong>, trade kille, pojedynki entry (opening frags) i skuteczność clutchy 1vX w tym meczu? Aktywuj ClutchData+.
+                                </p>
                             </div>
+                        </div>
+                        <div class="flex-shrink-0 w-full sm:w-auto">
+                            <a href="/plus" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition">
+                                <span>Aktywuj ClutchData+</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                            </a>
                         </div>
                     </div>
                 {% endif %}
@@ -275,288 +293,703 @@
             </div>
             {% endif %}
 
-            <!-- SECTION 1: CLUTCHDATA+ ADVANCED STATS -->
+            <!-- SECTION 1: CLUTCHDATA+ ADVANCED STATS (3-COLUMN SIDE-BY-SIDE) -->
             {% if is_analyzed and analysis_data %}
-            <div id="clutchTab" class="tab-content mb-10 space-y-8">
-                {% set teams_list = analysis_data.teams if analysis_data.teams else [{'team_name': 'Wszyscy Gracze', 'score': '', 'players': analysis_data.player_stats}] %}
-                {% for team in teams_list %}
-                <div class="glass-panel rounded-2xl overflow-hidden shadow-2xl border border-slate-700/80">
-                    <div class="bg-slate-900/90 px-6 py-4 border-b border-slate-700/80 flex justify-between items-center">
-                        <div class="flex items-center gap-3">
-                            {% if team.captain_avatar %}
-                                <img src="{{ team.captain_avatar }}" alt="Avatar kapitana" class="avatar-sm object-cover flex-shrink-0" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
-                                <div class="hidden avatar-sm flex items-center justify-center text-xs font-bold bg-slate-800 text-sky-400 border border-slate-700 flex-shrink-0" title="Kapitan: {{ team.captain_name or team.team_name }}">
-                                    {{ (team.captain_name or team.team_name)[0]|upper if (team.captain_name or team.team_name) else '?' }}
+            <div id="clutchTab" class="tab-content mb-10 space-y-6">
+                {% set team1 = analysis_data.teams[0] if (analysis_data.teams and analysis_data.teams|length > 0) else {'team_name': 'Drużyna 1', 'score': '', 'players': analysis_data.player_stats} %}
+                {% set team2 = analysis_data.teams[1] if (analysis_data.teams and analysis_data.teams|length > 1) else {'team_name': 'Drużyna 2', 'score': '', 'players': []} %}
+                {% set match_mvp = analysis_data.match_mvp %}
+                {% set winner_meta = analysis_data.winner_meta %}
+
+                <!-- 3-Column Layout: TEAM 1 (Left) | MATCH OUTCOME & MVP (Center) | TEAM 2 (Right) -->
+                <div class="match-grid">
+                    
+                    <!-- LEFT COLUMN: TEAM 1 -->
+                    <div class="match-team-card">
+                        <div class="match-team-header">
+                                <div class="match-team-header-left">
+                                    {% if team1.captain_avatar %}
+                                        <img src="{{ team1.captain_avatar }}" alt="Avatar kapitana" class="player-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                                        <div class="hidden player-avatar-placeholder">
+                                            {{ (team1.captain_name or team1.team_name)[0]|upper if (team1.captain_name or team1.team_name) else '?' }}
+                                        </div>
+                                    {% else %}
+                                        <div class="player-avatar-placeholder">
+                                            {{ (team1.captain_name or team1.team_name)[0]|upper if (team1.captain_name or team1.team_name) else '?' }}
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <h3 class="match-team-title">
+                                            {{ team1.team_name }}
+                                        </h3>
+                                        {% if team1.captain_name %}
+                                        <p class="match-captain-info">
+                                            <span class="text-sky-400 font-semibold">Kapitan:</span> {{ team1.captain_name }}
+                                        </p>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                            {% else %}
-                                <div class="avatar-sm flex items-center justify-center text-xs font-bold bg-slate-800 text-sky-400 border border-slate-700 flex-shrink-0" title="Kapitan: {{ team.captain_name or team.team_name }}">
-                                    {{ (team.captain_name or team.team_name)[0]|upper if (team.captain_name or team.team_name) else '?' }}
+                                <div class="match-team-header-right">
+                                    {% if winner_meta and winner_meta.winner_name == team1.team_name %}
+                                        <span class="match-winner-badge">
+                                            🏆 Zwycięzca
+                                        </span>
+                                    {% endif %}
+                                    {% if team1.score %}
+                                        <span class="match-score-badge">{{ team1.score }}</span>
+                                    {% endif %}
                                 </div>
-                            {% endif %}
-                            <div>
-                                <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                                    {{ team.team_name }}
-                                </h2>
-                                {% if team.captain_name %}
-                                <p class="text-[11px] text-slate-400 font-medium flex items-center gap-1">
-                                    <span class="text-sky-400 font-semibold">Kapitan:</span> {{ team.captain_name }}
-                                </p>
-                                {% endif %}
                             </div>
-                        </div>
-                        {% if team.score %}
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Wynik:</span>
-                            <span class="text-xl font-black text-emerald-400 font-mono">{{ team.score }}</span>
-                        </div>
-                        {% endif %}
+
+                            <div class="table-wrapper custom-scrollbar">
+                                <table id="team1ClutchTable" class="data-table text-xs w-full">
+                                    <thead class="data-table-header uppercase tracking-wider text-[11px]">
+                                        <tr>
+                                            <th data-col="name" onclick="sortHtmlTable('team1ClutchTable', 'name', 'string')">Gracz<span class="sort-arrow"></span></th>
+                                            <th class="text-center font-bold text-sky-300" data-col="rating" onclick="sortHtmlTable('team1ClutchTable', 'rating', 'number')">Rating<span class="sort-arrow"></span></th>
+                                            <th class="text-center" data-col="kills" onclick="sortHtmlTable('team1ClutchTable', 'kills', 'number')">K / D / A<span class="sort-arrow"></span></th>
+                                            <th class="text-center" data-col="kd" onclick="sortHtmlTable('team1ClutchTable', 'kd', 'number')">K/D<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-amber-300" data-col="adr" onclick="sortHtmlTable('team1ClutchTable', 'adr', 'number')">ADR<span class="sort-arrow"></span></th>
+                                            <th class="text-center" data-col="damage" onclick="sortHtmlTable('team1ClutchTable', 'damage', 'number')">DMG<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-amber-400 font-bold" data-col="mvps" onclick="sortHtmlTable('team1ClutchTable', 'mvps', 'number')">MVPs<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-300" data-col="entry" onclick="sortHtmlTable('team1ClutchTable', 'entry', 'number')">Entry Attempts<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-sky-300" data-col="trade" onclick="sortHtmlTable('team1ClutchTable', 'trade', 'number')">Trade Kills<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-purple-300" data-col="util" onclick="sortHtmlTable('team1ClutchTable', 'util', 'number')">Util Damage<span class="sort-arrow"></span></th>
+                                            <th class="text-center" data-col="flash" onclick="sortHtmlTable('team1ClutchTable', 'flash', 'number')">Flash assists/enemies<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-400" data-col="c1v1" onclick="sortHtmlTable('team1ClutchTable', 'c1v1', 'number')">1vs1<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-400" data-col="c1v2" onclick="sortHtmlTable('team1ClutchTable', 'c1v2', 'number')">1vs2<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-400" data-col="c1v3" onclick="sortHtmlTable('team1ClutchTable', 'c1v3', 'number')">1vs3<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-400" data-col="c1v4" onclick="sortHtmlTable('team1ClutchTable', 'c1v4', 'number')">1vs4<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-400" data-col="c1v5" onclick="sortHtmlTable('team1ClutchTable', 'c1v5', 'number')">1vs5<span class="sort-arrow"></span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-700/50">
+                                        {% for p in team1.players %}
+                                        <tr data-name="{{ p.persona_name|lower }}" data-rating="{{ p.clutchdata_rating }}" data-kills="{{ p.kills }}" data-deaths="{{ p.deaths }}" data-assists="{{ p.assists }}" data-kd="{{ p.kd }}" data-adr="{{ p.adr }}" data-damage="{{ p.total_damage|int }}" data-mvps="{{ p.mvps or 0 }}" data-entry="{{ p.entry_success }}" data-trade="{{ p.trade_kills }}" data-util="{{ p.utility_damage }}" data-flash="{{ p.enemies_flashed }}" data-c1v1="{{ p.c_1v1_wins }}" data-c1v2="{{ p.c_1v2_wins }}" data-c1v3="{{ p.c_1v3_wins }}" data-c1v4="{{ p.c_1v4_wins }}" data-c1v5="{{ p.c_1v5_wins }}">
+                                            <td class="font-medium text-white py-3">
+                                                <a href="/player/{{ p.steam_id }}" class="player-profile-cell group">
+                                                    {% if p.avatar %}
+                                                        <img src="{{ p.avatar }}" alt="Avatar" class="player-avatar-img">
+                                                    {% else %}
+                                                        <div class="player-avatar-placeholder">
+                                                            {{ p.persona_name[0]|upper if p.persona_name else '?' }}
+                                                        </div>
+                                                    {% endif %}
+                                                    <div class="min-w-0">
+                                                        <span class="player-name-text group-hover:text-sky-300 transition-colors">{{ p.persona_name }}</span>
+                                                        <span class="text-[9px] text-slate-500 font-mono block">{{ p.steam_id }}</span>
+                                                    </div>
+                                                </a>
+                                            </td>
+                                            <td class="text-center py-3">
+                                                {% set cr = p.clutchdata_rating %}
+                                                <span class="rating-badge text-xs {{ 'rating-elite' if cr >= 1.25 else ('rating-good' if cr >= 1.05 else ('rating-average' if cr >= 0.85 else 'rating-low')) }}">
+                                                    {{ "%.2f"|format(cr) }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center font-medium whitespace-nowrap py-3">
+                                                <span class="text-white font-bold">{{ p.kills }}</span>/<span class="text-slate-400">{{ p.deaths }}</span>/<span class="text-slate-500">{{ p.assists }}</span>
+                                            </td>
+                                            <td class="text-center font-bold {{ 'text-emerald-400' if p.kd >= 1.0 else 'text-red-400' }} py-3">
+                                                {{ "%.2f"|format(p.kd) }}
+                                            </td>
+                                            <td class="text-center font-bold text-amber-300 py-3">
+                                                {{ "%.1f"|format(p.adr) }}
+                                            </td>
+                                            <td class="text-center text-slate-300 font-mono text-xs py-3">
+                                                {{ p.total_damage|int }}
+                                            </td>
+                                            <td class="text-center font-bold text-amber-400 py-3">
+                                                {% if p.mvps and p.mvps > 0 %}
+                                                    ★ {{ p.mvps }}
+                                                {% else %}
+                                                    <span class="text-slate-600 font-normal">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center whitespace-nowrap py-3">
+                                                <span class="font-bold text-emerald-400">{{ p.entry_success }}</span>/<span class="text-slate-400">{{ p.entry_attempts }}</span>
+                                            </td>
+                                            <td class="text-center font-semibold text-sky-300 py-3">
+                                                {{ p.trade_kills }}
+                                            </td>
+                                            <td class="text-center text-purple-300 font-semibold py-3">
+                                                {{ p.utility_damage }}
+                                            </td>
+                                            <td class="text-center text-slate-300 py-3">
+                                                {{ p.flash_assists }} <span class="text-[10px] text-slate-500">({{ p.enemies_flashed }})</span>
+                                            </td>
+                                            <td class="text-center whitespace-nowrap py-3">
+                                                {% if p.c_1v1_attempts > 0 %}
+                                                    {% if p.c_1v1_wins > 0 %}
+                                                        <span class="font-bold text-emerald-400">{{ p.c_1v1_wins }}</span>/<span class="text-slate-400">{{ p.c_1v1_attempts }}</span>
+                                                    {% else %}
+                                                        <span class="text-slate-400 font-medium">0/{{ p.c_1v1_attempts }}</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-slate-600">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center whitespace-nowrap py-3">
+                                                {% if p.c_1v2_attempts > 0 %}
+                                                    {% if p.c_1v2_wins > 0 %}
+                                                        <span class="font-bold text-emerald-400">{{ p.c_1v2_wins }}</span>/<span class="text-slate-400">{{ p.c_1v2_attempts }}</span>
+                                                    {% else %}
+                                                        <span class="text-slate-400 font-medium">0/{{ p.c_1v2_attempts }}</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-slate-600">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center whitespace-nowrap py-3">
+                                                {% if p.c_1v3_attempts > 0 %}
+                                                    {% if p.c_1v3_wins > 0 %}
+                                                        <span class="font-bold text-emerald-400">{{ p.c_1v3_wins }}</span>/<span class="text-slate-400">{{ p.c_1v3_attempts }}</span>
+                                                    {% else %}
+                                                        <span class="text-slate-400 font-medium">0/{{ p.c_1v3_attempts }}</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-slate-600">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center whitespace-nowrap py-3">
+                                                {% if p.c_1v4_attempts > 0 %}
+                                                    {% if p.c_1v4_wins > 0 %}
+                                                        <span class="font-bold text-emerald-400">{{ p.c_1v4_wins }}</span>/<span class="text-slate-400">{{ p.c_1v4_attempts }}</span>
+                                                    {% else %}
+                                                        <span class="text-slate-400 font-medium">0/{{ p.c_1v4_attempts }}</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-slate-600">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center whitespace-nowrap py-3">
+                                                {% if p.c_1v5_attempts > 0 %}
+                                                    {% if p.c_1v5_wins > 0 %}
+                                                        <span class="font-bold text-emerald-400">{{ p.c_1v5_wins }}</span>/<span class="text-slate-400">{{ p.c_1v5_attempts }}</span>
+                                                    {% else %}
+                                                        <span class="text-slate-400 font-medium">0/{{ p.c_1v5_attempts }}</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-slate-600">-</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                     </div>
 
-                    <div class="table-wrapper custom-scrollbar">
-                        <table class="data-table">
-                            <thead class="data-table-header uppercase tracking-wider text-xs">
-                                <tr>
-                                    <th>Gracz</th>
-                                    <th class="text-center font-bold text-sky-300">Clutch Rating</th>
-                                    <th class="text-center">K / D / A</th>
-                                    <th class="text-center">K/D</th>
-                                    <th class="text-center text-amber-300">ADR</th>
-                                    <th class="text-center">Damage</th>
-                                    <th class="text-center text-emerald-300">Entry Kills</th>
-                                    <th class="text-center text-sky-300">Trade Kills</th>
-                                    <th class="text-center text-purple-300">Utility Damage</th>
-                                    <th class="text-center">Flashed enemies</th>
-                                    <th class="text-center">Flashed assists</th>
-                                    <th class="text-center text-emerald-400">1v1</th>
-                                    <th class="text-center text-emerald-400">1v2</th>
-                                    <th class="text-center text-emerald-400">1v3</th>
-                                    <th class="text-center text-emerald-400">1v4</th>
-                                    <th class="text-center text-emerald-400">1v5</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for p in team.players %}
-                                <tr>
-                                    <!-- Player info -->
-                                    <td class="font-medium text-white">
-                                        <a href="/player/{{ p.steam_id }}" class="flex items-center gap-3 hover:text-sky-400 transition-colors cursor-pointer group">
-                                            {% if p.avatar %}
-                                                <img src="{{ p.avatar }}" alt="Avatar" class="avatar-sm">
+                    <!-- MIDDLE COLUMN: MATCH OUTCOME & MATCH MVP -->
+                    <div class="match-center-col">
+                        <!-- CARD 1: MVP MECZU -->
+                        {% if match_mvp %}
+                        <div class="match-mvp-card">
+                            <div class="match-mvp-glow"></div>
+
+                            <div class="relative z-10 flex-1 flex flex-col justify-between">
+                                <div>
+                                    <span class="match-mvp-tag">
+                                        👑 MVP MECZU
+                                    </span>
+
+                                    <div class="my-2.5 flex justify-center">
+                                        <div class="relative">
+                                            {% if match_mvp.avatar %}
+                                                <img src="{{ match_mvp.avatar }}" alt="MVP" class="match-mvp-avatar">
                                             {% else %}
-                                                <div class="avatar-sm flex items-center justify-center text-xs font-bold bg-slate-800 text-sky-400 border border-slate-700">
-                                                    {{ p.persona_name[0]|upper if p.persona_name else '?' }}
+                                                <div class="match-mvp-avatar-placeholder">
+                                                    {{ match_mvp.persona_name[0]|upper if match_mvp.persona_name else '?' }}
                                                 </div>
                                             {% endif %}
-                                            <div>
-                                                <span class="font-bold block text-sm group-hover:text-sky-300 transition-colors">{{ p.persona_name }}</span>
-                                                <span class="text-[10px] text-slate-500 font-mono">{{ p.steam_id }}</span>
+                                            <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black flex items-center justify-center shadow">
+                                                ★
                                             </div>
-                                        </a>
-                                    </td>
+                                        </div>
+                                    </div>
 
-                                    <!-- Rating -->
-                                    <td class="text-center">
-                                        {% set cr = p.clutchdata_rating %}
-                                        <span class="rating-badge {{ 'rating-elite' if cr >= 1.25 else ('rating-good' if cr >= 1.05 else ('rating-average' if cr >= 0.85 else 'rating-low')) }}">
-                                            {{ "%.2f"|format(cr) }}
+                                    <a href="/player/{{ match_mvp.steam_id }}" class="match-mvp-name px-1">
+                                        {{ match_mvp.persona_name }}
+                                    </a>
+                                    {% if match_mvp.team_name %}
+                                    <span class="text-[10px] text-slate-400 block mt-0.5 truncate">
+                                        {{ match_mvp.team_name }}
+                                    </span>
+                                    {% endif %}
+
+                                    <div class="flex items-center justify-center gap-1.5 mt-2 mb-2.5">
+                                        <span class="rating-badge rating-elite text-xs py-0.5 px-2.5 shadow-sm">
+                                            {{ "%.2f"|format(match_mvp.clutchdata_rating) }} Rating
                                         </span>
-                                    </td>
+                                    </div>
+                                </div>
 
-                                    <!-- K / D / A -->
-                                    <td class="text-center font-medium">
-                                        <span class="text-white">{{ p.kills }}</span> / 
-                                        <span class="text-slate-400">{{ p.deaths }}</span> / 
-                                        <span class="text-slate-400">{{ p.assists }}</span>
-                                    </td>
+                                <div class="match-mvp-grid">
+                                    <div class="match-mvp-stat-box">
+                                        <span class="match-mvp-stat-label">K / D / A</span>
+                                        <span class="font-bold text-white text-xs">{{ match_mvp.kills }}/{{ match_mvp.deaths }}/{{ match_mvp.assists }}</span>
+                                    </div>
+                                    <div class="match-mvp-stat-box">
+                                        <span class="match-mvp-stat-label">K/D Ratio</span>
+                                        <span class="font-bold text-emerald-400 text-xs">{{ "%.2f"|format(match_mvp.kd) }}</span>
+                                    </div>
+                                    <div class="match-mvp-stat-box">
+                                        <span class="match-mvp-stat-label">ADR</span>
+                                        <span class="font-bold text-amber-300 text-xs">{{ "%.1f"|format(match_mvp.adr) }}</span>
+                                    </div>
+                                    <div class="match-mvp-stat-box">
+                                        <span class="match-mvp-stat-label">Damage</span>
+                                            <span class="font-bold text-emerald-400 text-[11px] truncate block">{{ match_mvp.total_damage }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
 
-                                    <!-- K/D -->
-                                    <td class="text-center font-bold {{ 'text-emerald-400' if p.kd >= 1.0 else 'text-red-400' }}">
-                                        {{ "%.2f"|format(p.kd) }}
-                                    </td>
+                        <!-- CARD 1: WYNIK I ZWYCIĘZCA MECZU -->
+                        <div class="match-outcome-card">
+                            <span class="match-outcome-title">
+                                Wynik Meczu
+                            </span>
 
-                                    <!-- ADR -->
-                                    <td class="text-center font-bold text-amber-300">
-                                        {{ "%.1f"|format(p.adr) }}
-                                    </td>
+                            {% if winner_meta and winner_meta.winner_name %}
+                            <div>
+                                <span class="match-winner-badge text-xs px-3 py-1">
+                                    🏆 {{ winner_meta.winner_name }}
+                                </span>
+                            </div>
+                            {% endif %}
 
-                                    <!-- Total Damage -->
-                                    <td class="text-center text-slate-300 font-mono text-xs">
-                                        {{ p.total_damage|int }}
-                                    </td>
+                            {% if team1.score or team2.score %}
+                            <div class="match-score-display">
+                                <span class="{{ 'text-emerald-400' if team1.score > team2.score else 'text-white' }}">{{ team1.score }}</span>
+                                <span class="text-slate-500 mx-1">:</span>
+                                <span class="{{ 'text-emerald-400' if team2.score > team1.score else 'text-white' }}">{{ team2.score }}</span>
+                            </div>
+                            {% endif %}
 
-                                    <!-- Entry Kills -->
-                                    <td class="text-center">
-                                        <span class="font-bold text-emerald-400">{{ p.entry_success }}</span> / <span class="text-slate-400">{{ p.entry_attempts }}</span>
-                                        {% if p.entry_attempts > 0 %}
-                                        <span class="text-[10px] text-slate-400 block font-normal">({{ p.entry_rate }}%)</span>
+                            <div class="match-meta-pill">
+                                <div class="flex items-center justify-center gap-1 text-sky-400">
+                                    <span>🗺️</span>
+                                    <span>{{ match_info.voting.map.pick[0] if match_info and match_info.voting and match_info.voting.map and match_info.voting.map.pick else 'CS2' }}</span>
+                                </div>
+                                <div class="text-slate-400 text-[10px] font-mono">
+                                    {{ analysis_data.total_rounds }} rund rozegranych
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <!-- RIGHT COLUMN: TEAM 2 -->
+                    <div class="match-team-card">
+                        <div class="match-team-header">
+                                <div class="match-team-header-left">
+                                    {% if team2.captain_avatar %}
+                                        <img src="{{ team2.captain_avatar }}" alt="Avatar kapitana" class="player-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                                        <div class="hidden player-avatar-placeholder">
+                                            {{ (team2.captain_name or team2.team_name)[0]|upper if (team2.captain_name or team2.team_name) else '?' }}
+                                        </div>
+                                    {% else %}
+                                        <div class="player-avatar-placeholder">
+                                            {{ (team2.captain_name or team2.team_name)[0]|upper if (team2.captain_name or team2.team_name) else '?' }}
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <h3 class="match-team-title">
+                                            {{ team2.team_name }}
+                                        </h3>
+                                        {% if team2.captain_name %}
+                                        <p class="match-captain-info">
+                                            <span class="text-sky-400 font-semibold">Kapitan:</span> {{ team2.captain_name }}
+                                        </p>
                                         {% endif %}
-                                    </td>
+                                    </div>
+                                </div>
+                                <div class="match-team-header-right">
+                                    {% if winner_meta and winner_meta.winner_name == team2.team_name %}
+                                        <span class="match-winner-badge">
+                                            🏆 Zwycięzca
+                                        </span>
+                                    {% endif %}
+                                    {% if team2.score %}
+                                        <span class="match-score-badge">{{ team2.score }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
 
-                                    <!-- Trade Kills -->
-                                    <td class="text-center font-semibold text-sky-300">
-                                        {{ p.trade_kills }}
-                                    </td>
+                            <div class="table-wrapper custom-scrollbar">
+                                <table id="team2ClutchTable" class="data-table text-xs w-full">
+                                    <thead class="data-table-header uppercase tracking-wider text-[11px]">
+                                        <tr>
+                                            <th data-col="name" onclick="sortHtmlTable('team2ClutchTable', 'name', 'string')">Gracz<span class="sort-arrow"></span></th>
+                                            <th class="text-center font-bold text-sky-300" data-col="rating" onclick="sortHtmlTable('team2ClutchTable', 'rating', 'number')">Rating<span class="sort-arrow"></span></th>
+                                            <th class="text-center" data-col="kills" onclick="sortHtmlTable('team2ClutchTable', 'kills', 'number')">K / D / A<span class="sort-arrow"></span></th>
+                                            <th class="text-center" data-col="kd" onclick="sortHtmlTable('team2ClutchTable', 'kd', 'number')">K/D<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-amber-300" data-col="adr" onclick="sortHtmlTable('team2ClutchTable', 'adr', 'number')">ADR<span class="sort-arrow"></span></th>
+                                            <th class="text-center" data-col="damage" onclick="sortHtmlTable('team2ClutchTable', 'damage', 'number')">DMG<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-amber-400 font-bold" data-col="mvps" onclick="sortHtmlTable('team2ClutchTable', 'mvps', 'number')">MVPs<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-300" data-col="entry" onclick="sortHtmlTable('team2ClutchTable', 'entry', 'number')">Entry Attempts<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-sky-300" data-col="trade" onclick="sortHtmlTable('team2ClutchTable', 'trade', 'number')">Trade Kills<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-purple-300" data-col="util" onclick="sortHtmlTable('team2ClutchTable', 'util', 'number')">Util Damage<span class="sort-arrow"></span></th>
+                                            <th class="text-center" data-col="flash" onclick="sortHtmlTable('team2ClutchTable', 'flash', 'number')">Flash assists/enemies<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-400" data-col="c1v1" onclick="sortHtmlTable('team2ClutchTable', 'c1v1', 'number')">1vs1<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-400" data-col="c1v2" onclick="sortHtmlTable('team2ClutchTable', 'c1v2', 'number')">1vs2<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-400" data-col="c1v3" onclick="sortHtmlTable('team2ClutchTable', 'c1v3', 'number')">1vs3<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-400" data-col="c1v4" onclick="sortHtmlTable('team2ClutchTable', 'c1v4', 'number')">1vs4<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-400" data-col="c1v5" onclick="sortHtmlTable('team2ClutchTable', 'c1v5', 'number')">1vs5<span class="sort-arrow"></span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-700/50">
+                                        {% for p in team2.players %}
+                                        <tr data-name="{{ p.persona_name|lower }}" data-rating="{{ p.clutchdata_rating }}" data-kills="{{ p.kills }}" data-deaths="{{ p.deaths }}" data-assists="{{ p.assists }}" data-kd="{{ p.kd }}" data-adr="{{ p.adr }}" data-damage="{{ p.total_damage|int }}" data-mvps="{{ p.mvps or 0 }}" data-entry="{{ p.entry_success }}" data-trade="{{ p.trade_kills }}" data-util="{{ p.utility_damage }}" data-flash="{{ p.enemies_flashed }}" data-c1v1="{{ p.c_1v1_wins }}" data-c1v2="{{ p.c_1v2_wins }}" data-c1v3="{{ p.c_1v3_wins }}" data-c1v4="{{ p.c_1v4_wins }}" data-c1v5="{{ p.c_1v5_wins }}">
+                                            <td class="font-medium text-white py-3">
+                                                <a href="/player/{{ p.steam_id }}" class="player-profile-cell group">
+                                                    {% if p.avatar %}
+                                                        <img src="{{ p.avatar }}" alt="Avatar" class="player-avatar-img">
+                                                    {% else %}
+                                                        <div class="player-avatar-placeholder">
+                                                            {{ p.persona_name[0]|upper if p.persona_name else '?' }}
+                                                        </div>
+                                                    {% endif %}
+                                                    <div class="min-w-0">
+                                                        <span class="player-name-text group-hover:text-sky-300 transition-colors">{{ p.persona_name }}</span>
+                                                        <span class="text-[9px] text-slate-500 font-mono block">{{ p.steam_id }}</span>
+                                                    </div>
+                                                </a>
+                                            </td>
+                                            <td class="text-center py-3">
+                                                {% set cr = p.clutchdata_rating %}
+                                                <span class="rating-badge text-xs {{ 'rating-elite' if cr >= 1.25 else ('rating-good' if cr >= 1.05 else ('rating-average' if cr >= 0.85 else 'rating-low')) }}">
+                                                    {{ "%.2f"|format(cr) }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center font-medium whitespace-nowrap py-3">
+                                                <span class="text-white font-bold">{{ p.kills }}</span>/<span class="text-slate-400">{{ p.deaths }}</span>/<span class="text-slate-500">{{ p.assists }}</span>
+                                            </td>
+                                            <td class="text-center font-bold {{ 'text-emerald-400' if p.kd >= 1.0 else 'text-red-400' }} py-3">
+                                                {{ "%.2f"|format(p.kd) }}
+                                            </td>
+                                            <td class="text-center font-bold text-amber-300 py-3">
+                                                {{ "%.1f"|format(p.adr) }}
+                                            </td>
+                                            <td class="text-center text-slate-300 font-mono text-xs py-3">
+                                                {{ p.total_damage|int }}
+                                            </td>
+                                            <td class="text-center font-bold text-amber-400 py-3">
+                                                {% if p.mvps and p.mvps > 0 %}
+                                                    ★ {{ p.mvps }}
+                                                {% else %}
+                                                    <span class="text-slate-600 font-normal">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center whitespace-nowrap py-3">
+                                                <span class="font-bold text-emerald-400">{{ p.entry_success }}</span>/<span class="text-slate-400">{{ p.entry_attempts }}</span>
+                                            </td>
+                                            <td class="text-center font-semibold text-sky-300 py-3">
+                                                {{ p.trade_kills }}
+                                            </td>
+                                            <td class="text-center text-purple-300 font-semibold py-3">
+                                                {{ p.utility_damage }}
+                                            </td>
+                                            <td class="text-center text-slate-300 py-3">
+                                                {{ p.enemies_flashed }} <span class="text-[10px] text-slate-500">({{ p.flash_assists }})</span>
+                                            </td>
+                                            <td class="text-center whitespace-nowrap py-3">
+                                                {% if p.c_1v1_attempts > 0 %}
+                                                    {% if p.c_1v1_wins > 0 %}
+                                                        <span class="font-bold text-emerald-400">{{ p.c_1v1_wins }}</span>/<span class="text-slate-400">{{ p.c_1v1_attempts }}</span>
+                                                    {% else %}
+                                                        <span class="text-slate-400 font-medium">0/{{ p.c_1v1_attempts }}</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-slate-600">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center whitespace-nowrap py-3">
+                                                {% if p.c_1v2_attempts > 0 %}
+                                                    {% if p.c_1v2_wins > 0 %}
+                                                        <span class="font-bold text-emerald-400">{{ p.c_1v2_wins }}</span>/<span class="text-slate-400">{{ p.c_1v2_attempts }}</span>
+                                                    {% else %}
+                                                        <span class="text-slate-400 font-medium">0/{{ p.c_1v2_attempts }}</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-slate-600">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center whitespace-nowrap py-3">
+                                                {% if p.c_1v3_attempts > 0 %}
+                                                    {% if p.c_1v3_wins > 0 %}
+                                                        <span class="font-bold text-emerald-400">{{ p.c_1v3_wins }}</span>/<span class="text-slate-400">{{ p.c_1v3_attempts }}</span>
+                                                    {% else %}
+                                                        <span class="text-slate-400 font-medium">0/{{ p.c_1v3_attempts }}</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-slate-600">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center whitespace-nowrap py-3">
+                                                {% if p.c_1v4_attempts > 0 %}
+                                                    {% if p.c_1v4_wins > 0 %}
+                                                        <span class="font-bold text-emerald-400">{{ p.c_1v4_wins }}</span>/<span class="text-slate-400">{{ p.c_1v4_attempts }}</span>
+                                                    {% else %}
+                                                        <span class="text-slate-400 font-medium">0/{{ p.c_1v4_attempts }}</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-slate-600">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center whitespace-nowrap py-3">
+                                                {% if p.c_1v5_attempts > 0 %}
+                                                    {% if p.c_1v5_wins > 0 %}
+                                                        <span class="font-bold text-emerald-400">{{ p.c_1v5_wins }}</span>/<span class="text-slate-400">{{ p.c_1v5_attempts }}</span>
+                                                    {% else %}
+                                                        <span class="text-slate-400 font-medium">0/{{ p.c_1v5_attempts }}</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-slate-600">-</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                    </div>
 
-                                    <!-- Utility Damage -->
-                                    <td class="text-center text-purple-300 font-semibold">
-                                        {{ p.utility_damage }}
-                                    </td>
+                </div>
+            </div>
+            {% endif %}
 
-                                    <!-- Enemies Flashed -->
-                                    <td class="text-center text-slate-300">
-                                        {{ p.enemies_flashed }}
-                                    </td>
+            <!-- SECTION 2: ROUNDS TIMELINE (INTERACTIVE 3-COLUMN REVIEW) -->
+            {% if is_analyzed and analysis_data %}
+            <div id="roundsTab" class="tab-content hidden mb-10 space-y-6">
+                <!-- Top: Round Selector Card -->
+                <div class="round-selector-panel">
+                    <!-- Left: Header -->
+                    <div class="round-selector-header">
+                        <div>
+                            <h2 class="round-selector-title">Przegląd Rund</h2>
+                            <p class="text-xs text-slate-400 mt-0.5">Wybierz rundę, aby przeanalizować statystyki obu drużyn, MVP oraz przebieg.</p>
+                        </div>
+                    </div>
 
-                                    <!-- Flash Assists -->
-                                    <td class="text-center text-slate-300 font-medium">
-                                        {{ p.flash_assists }}
-                                    </td>
+                    <!-- Right: Dropdown & Nav Buttons -->
+                    <div class="round-selector-controls">
+                        <button type="button" id="btnPrevRound" onclick="prevRound()" class="round-btn-nav">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                            <span class="hidden sm:inline">Poprzednia</span>
+                        </button>
 
-                                    <!-- 1v1 -->
-                                    <td class="text-center">
-                                        {% if p.c_1v1_wins > 0 %}
-                                            <span class="px-1.5 py-0.5 rounded text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                                {{ p.c_1v1_wins }}/{{ p.c_1v1_attempts }}
-                                            </span>
-                                        {% elif p.c_1v1_attempts > 0 %}
-                                            <span class="text-xs text-slate-400 font-mono">0/{{ p.c_1v1_attempts }}</span>
-                                        {% else %}
-                                            <span class="text-xs text-slate-600">-</span>
-                                        {% endif %}
-                                    </td>
-
-                                    <!-- 1v2 -->
-                                    <td class="text-center">
-                                        {% if p.c_1v2_wins > 0 %}
-                                            <span class="px-1.5 py-0.5 rounded text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                                {{ p.c_1v2_wins }}/{{ p.c_1v2_attempts }}
-                                            </span>
-                                        {% elif p.c_1v2_attempts > 0 %}
-                                            <span class="text-xs text-slate-400 font-mono">0/{{ p.c_1v2_attempts }}</span>
-                                        {% else %}
-                                            <span class="text-xs text-slate-600">-</span>
-                                        {% endif %}
-                                    </td>
-
-                                    <!-- 1v3 -->
-                                    <td class="text-center">
-                                        {% if p.c_1v3_wins > 0 %}
-                                            <span class="px-1.5 py-0.5 rounded text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                                {{ p.c_1v3_wins }}/{{ p.c_1v3_attempts }}
-                                            </span>
-                                        {% elif p.c_1v3_attempts > 0 %}
-                                            <span class="text-xs text-slate-400 font-mono">0/{{ p.c_1v3_attempts }}</span>
-                                        {% else %}
-                                            <span class="text-xs text-slate-600">-</span>
-                                        {% endif %}
-                                    </td>
-
-                                    <!-- 1v4 -->
-                                    <td class="text-center">
-                                        {% if p.c_1v4_wins > 0 %}
-                                            <span class="px-1.5 py-0.5 rounded text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                                {{ p.c_1v4_wins }}/{{ p.c_1v4_attempts }}
-                                            </span>
-                                        {% elif p.c_1v4_attempts > 0 %}
-                                            <span class="text-xs text-slate-400 font-mono">0/{{ p.c_1v4_attempts }}</span>
-                                        {% else %}
-                                            <span class="text-xs text-slate-600">-</span>
-                                        {% endif %}
-                                    </td>
-
-                                    <!-- 1v5 -->
-                                    <td class="text-center">
-                                        {% if p.c_1v5_wins > 0 %}
-                                            <span class="px-1.5 py-0.5 rounded text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                                {{ p.c_1v5_wins }}/{{ p.c_1v5_attempts }}
-                                            </span>
-                                        {% elif p.c_1v5_attempts > 0 %}
-                                            <span class="text-xs text-slate-400 font-mono">0/{{ p.c_1v5_attempts }}</span>
-                                        {% else %}
-                                            <span class="text-xs text-slate-600">-</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
+                        <div class="round-select-wrapper">
+                            <select id="roundSelector" onchange="changeRound(parseInt(this.value))" class="round-select-input">
+                                {% for r in analysis_data.rounds %}
+                                <option value="{{ r.round_number }}">
+                                    Runda {{ r.round_number }}
+                                </option>
                                 {% endfor %}
-                            </tbody>
-                        </table>
+                            </select>
+                            <div class="round-select-arrow">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+
+                        <button type="button" id="btnNextRound" onclick="nextRound()" class="round-btn-nav">
+                            <span class="hidden sm:inline">Następna</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
                     </div>
                 </div>
-                {% endfor %}
-            </div>
 
-            <!-- SECTION 2: ROUNDS TIMELINE -->
-            <div id="roundsTab" class="tab-content hidden mb-10">
-                <div class="glass-panel rounded-2xl p-6 border border-slate-700/80 shadow-2xl">
-                    <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-700">
-                        <div>
-                            <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                                <span>📋</span> Przebieg Runda po Rundzie
-                            </h2>
-                            <p class="text-xs text-slate-400 mt-0.5">Szczegółowe dane z każdej rundy meczu: zwycięzcy, MVP rundy i clutch sytuacje.</p>
-                        </div>
-                        <span class="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
-                            Łącznie rund: {{ analysis_data.rounds|length }}
-                        </span>
+                <!-- 3-Column Layout: TEAM 1 (Left) | MVP & OUTCOME (Center) | TEAM 2 (Right) -->
+                <div class="match-grid">
+                    
+                    <!-- LEFT COLUMN: TEAM 1 -->
+                    <div class="match-team-card">
+                        <div class="match-team-header">
+                                <div class="match-team-header-left">
+                                    <div id="team1CapAvatarContainer">
+                                        <!-- Team 1 Captain avatar -->
+                                    </div>
+                                    <div>
+                                        <h3 id="team1HeaderName" class="match-team-title">
+                                            {{ analysis_data.teams_meta.team1.name if analysis_data.teams_meta else 'Drużyna 1' }}
+                                        </h3>
+                                        <span id="team1SideBadge" class="text-[10px] font-black uppercase px-2 py-0.5 rounded">
+                                            <!-- CT / T -->
+                                        </span>
+                                    </div>
+                                </div>
+                                <div id="team1OutcomeBadge">
+                                    <!-- WIN / LOSS -->
+                                </div>
+                            </div>
+
+                            <div class="table-wrapper custom-scrollbar">
+                                <table id="team1RoundTable" class="data-table text-xs w-full">
+                                    <thead class="data-table-header uppercase tracking-wider text-[11px]">
+                                        <tr>
+                                            <th data-col="name" onclick="sortHtmlTable('team1RoundTable', 'name', 'string')">Gracz<span class="sort-arrow"></span></th>
+                                            <th class="text-center font-bold text-sky-300" data-col="impact" onclick="sortHtmlTable('team1RoundTable', 'impact', 'number')">Impact<span class="sort-arrow"></span></th>
+                                            <th class="text-center" data-col="kills" onclick="sortHtmlTable('team1RoundTable', 'kills', 'number')">K / D / A<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-amber-300" data-col="damage" onclick="sortHtmlTable('team1RoundTable', 'damage', 'number')">Damage<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-300" data-col="entry" onclick="sortHtmlTable('team1RoundTable', 'entry', 'number')">Entry Attempt<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-sky-300" data-col="trade" onclick="sortHtmlTable('team1RoundTable', 'trade', 'number')">Trade<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-purple-300" data-col="util" onclick="sortHtmlTable('team1RoundTable', 'util', 'number')">Utility Damage<span class="sort-arrow"></span></th>
+                                            <th class="text-center" data-col="flash" onclick="sortHtmlTable('team1RoundTable', 'flash', 'number')">Flash Enemies/assists<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-400" data-col="clutch" onclick="sortHtmlTable('team1RoundTable', 'clutch', 'number')">Clutch (1vsX)<span class="sort-arrow"></span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="team1RoundTableBody" class="divide-y divide-slate-700/50">
+                                        <!-- Populated dynamically by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {% for r in analysis_data.rounds %}
-                        <div class="bg-slate-900/70 border {{ 'border-sky-500/40 bg-sky-950/10' if r.winning_side == 'CT' else 'border-amber-500/40 bg-amber-950/10' }} rounded-xl p-4 transition hover:border-slate-500">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="font-extrabold text-sm text-white">Runda {{ r.round_number }}</span>
-                                <span class="px-2.5 py-0.5 rounded text-xs font-black {{ 'bg-sky-500/20 text-sky-400 border border-sky-500/30' if r.winning_side == 'CT' else 'bg-amber-500/20 text-amber-400 border border-amber-500/30' }}">
-                                    {{ r.winning_side }} WIN
+                    <!-- MIDDLE COLUMN: MVP + SPOSÓB ZAKOŃCZENIA -->
+                    <div class="match-center-col">
+                        
+                        <!-- CARD 1: MVP RUNDY -->
+                        <div class="match-mvp-card">
+                            <div class="match-mvp-glow"></div>
+                            
+                            <div class="relative z-10 flex-1 flex flex-col justify-between">
+                                <div>
+                                    <span class="match-mvp-tag">
+                                        ★ MVP RUNDY
+                                    </span>
+
+                                    <div class="my-2.5 flex justify-center">
+                                        <div id="mvpAvatarContainer" class="relative">
+                                            <!-- MVP Avatar -->
+                                        </div>
+                                    </div>
+
+                                    <h4 id="mvpNick" class="match-mvp-name px-1">
+                                        <!-- Nick -->
+                                    </h4>
+
+                                    <div class="flex items-center justify-center gap-1.5 mt-1.5 mb-2.5">
+                                        <span id="mvpSideBadge" class="px-1.5 py-0.5 rounded text-[10px] font-black uppercase"></span>
+                                    </div>
+                                </div>
+
+                                <div class="match-mvp-grid">
+                                    <div class="match-mvp-stat-box">
+                                        <span class="match-mvp-stat-label">Impact</span>
+                                        <span id="mvpImpact" class="font-bold text-sky-300 text-xs"></span>
+                                    </div>
+                                    <div class="match-mvp-stat-box">
+                                        <span class="match-mvp-stat-label">K / D / A</span>
+                                        <span id="mvpKda" class="font-bold text-white text-xs"></span>
+                                    </div>
+                                    <div class="match-mvp-stat-box">
+                                        <span class="match-mvp-stat-label">Damage</span>
+                                        <span id="mvpDamage" class="font-bold text-amber-300 text-xs"></span>
+                                    </div>
+                                    <div class="match-mvp-stat-box">
+                                        <span class="match-mvp-stat-label">Utility</span>
+                                        <span id="mvpUtility" class="font-bold text-purple-300 text-xs"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CARD 2: SPOSÓB ZAKOŃCZENIA (PRZEBIEG) -->
+                        <div class="match-outcome-card">
+                            <span class="match-outcome-title">
+                                Sposób zakończenia
+                            </span>
+
+                            <div>
+                                <span id="roundWinnerBadge" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-black tracking-wide uppercase shadow-md">
+                                    <!-- CT WIN / T WIN -->
                                 </span>
                             </div>
 
-                            <div class="space-y-1.5 text-xs text-slate-300 mt-2">
-                                <div class="flex justify-between">
-                                    <span class="text-slate-400">Powód wygranej:</span>
-                                    <span class="font-semibold text-slate-200">{{ r.win_reason }}</span>
+                            <div class="match-meta-pill">
+                                <div class="flex items-center justify-center gap-1.5 text-xs font-bold text-white">
+                                    <span id="roundReasonIcon" class="text-base"></span>
+                                    <span id="roundReasonText" class="text-xs"></span>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-slate-400">Czas trwania:</span>
-                                    <span class="text-slate-200">{{ r.duration_seconds }}s</span>
+                                <div class="text-[11px] text-slate-400 flex items-center justify-center gap-1 pt-1 border-t border-slate-700/40 font-mono">
+                                    <span>⏱️</span>
+                                    <span id="roundDuration" class="text-slate-200 font-semibold"></span>
                                 </div>
-                                {% if r.mvp %}
-                                <div class="flex justify-between items-center pt-1 border-t border-slate-800">
-                                    <span class="text-amber-400 font-semibold flex items-center gap-1">★ MVP Rundy:</span>
-                                    <span class="font-bold text-white">{{ r.mvp }}</span>
-                                </div>
-                                {% endif %}
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
+
+                    <!-- RIGHT COLUMN: TEAM 2 -->
+                    <div class="match-team-card">
+                        <div class="match-team-header">
+                                <div class="match-team-header-left">
+                                    <div id="team2CapAvatarContainer">
+                                        <!-- Team 2 Captain avatar -->
+                                    </div>
+                                    <div>
+                                        <h3 id="team2HeaderName" class="match-team-title">
+                                            {{ analysis_data.teams_meta.team2.name if analysis_data.teams_meta else 'Drużyna 2' }}
+                                        </h3>
+                                        <span id="team2SideBadge" class="text-[10px] font-black uppercase px-2 py-0.5 rounded">
+                                            <!-- T / CT -->
+                                        </span>
+                                    </div>
+                                </div>
+                                <div id="team2OutcomeBadge">
+                                    <!-- WIN / LOSS -->
+                                </div>
+                            </div>
+
+                            <div class="table-wrapper custom-scrollbar">
+                                <table id="team2RoundTable" class="data-table text-xs w-full">
+                                    <thead class="data-table-header uppercase tracking-wider text-[11px]">
+                                        <tr>
+                                            <th data-col="name" onclick="sortHtmlTable('team2RoundTable', 'name', 'string')">Gracz<span class="sort-arrow"></span></th>
+                                            <th class="text-center font-bold text-sky-300" data-col="impact" onclick="sortHtmlTable('team2RoundTable', 'impact', 'number')">Impact<span class="sort-arrow"></span></th>
+                                            <th class="text-center" data-col="kills" onclick="sortHtmlTable('team2RoundTable', 'kills', 'number')">K / D / A<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-amber-300" data-col="damage" onclick="sortHtmlTable('team2RoundTable', 'damage', 'number')">Damage<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-300" data-col="entry" onclick="sortHtmlTable('team2RoundTable', 'entry', 'number')">Entry Attempt<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-sky-300" data-col="trade" onclick="sortHtmlTable('team2RoundTable', 'trade', 'number')">Trade Kill<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-purple-300" data-col="util" onclick="sortHtmlTable('team2RoundTable', 'util', 'number')">Utility Damage<span class="sort-arrow"></span></th>
+                                            <th class="text-center" data-col="flash" onclick="sortHtmlTable('team2RoundTable', 'flash', 'number')">Flashed Enemies/Assists<span class="sort-arrow"></span></th>
+                                            <th class="text-center text-emerald-400" data-col="clutch" onclick="sortHtmlTable('team2RoundTable', 'clutch', 'number')">Clutch (1vsX)<span class="sort-arrow"></span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="team2RoundTableBody" class="divide-y divide-slate-700/50">
+                                        <!-- Populated dynamically by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                    </div>
+
                 </div>
             </div>
             {% endif %}
 
             <!-- SECTION 3: STANDARD FACEIT SCOREBOARD -->
             <div id="faceitTab" class="tab-content {{ 'hidden' if is_analyzed and analysis_data else '' }} mb-10">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="faceit-scoreboard-grid">
                     {% for team in round.get('teams', []) %}
-                        <div class="glass-panel rounded-2xl overflow-hidden shadow-lg border border-slate-700">
-                            <div class="bg-slate-800/80 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
-                                <h2 class="text-xl font-bold text-white">{{ team.get('team_stats', {}).get('Team', 'Drużyna') }}</h2>
-                                <span class="text-lg font-bold text-emerald-400">{{ team.get('team_stats', {}).get('Final Score', '') }}</span>
+                        <div class="faceit-team-box">
+                            <div class="faceit-team-topbar">
+                                <h2 class="faceit-team-name-title">{{ team.get('team_stats', {}).get('Team', 'Drużyna') }}</h2>
+                                <span class="faceit-team-score-num">{{ team.get('team_stats', {}).get('Final Score', '') }}</span>
                             </div>
                             <div class="table-wrapper custom-scrollbar">
                                 <table class="data-table">
                                     <thead class="data-table-header uppercase tracking-wider text-xs">
                                         <tr>
                                             <th>Gracz</th>
-                                            <th class="text-center">Kille</th>
-                                            <th class="text-center">Asysty</th>
-                                            <th class="text-center">Śmierci</th>
-                                            <th class="text-center">K/D</th>
-                                            <th class="text-center">K/R</th>
+                                            <th class="text-center">K/D/A</th>
+                                            <th class="text-center">K/D ratio</th>
                                             <th class="text-center">HS%</th>
                                             <th class="text-center text-amber-400/90">MVPs</th>
-                                            <th class="text-center">Triple</th>
-                                            <th class="text-center">Quadro</th>
-                                            <th class="text-center text-emerald-400/90">Penta</th>
+                                            <th class="text-center">Triple Kills</th>
+                                            <th class="text-center">Quadro Kills</th>
+                                            <th class="text-center text-emerald-400/90">Aces</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -573,16 +1006,11 @@
                                                     <span class="font-bold">{{ player.get('nickname', 'Nieznany') }}</span>
                                                 </a>
                                             </td>
-                                            <td class="text-center">{{ player.get('player_stats', {}).get('Kills', '0') }}</td>
-                                            <td class="text-center">{{ player.get('player_stats', {}).get('Assists', '0') }}</td>
-                                            <td class="text-center">{{ player.get('player_stats', {}).get('Deaths', '0') }}</td>
-                                            
+                                            <td class="text-center">{{ player.get('player_stats', {}).get('Kills', '0') }}/{{ player.get('player_stats', {}).get('Deaths', '0') }}/{{ player.get('player_stats', {}).get('Assists', '0') }}</td>
                                             {% set kd = player.get('player_stats', {}).get('K/D Ratio', '0') | float %}
                                             <td class="font-medium text-center {{ 'text-emerald-400' if kd >= 1.0 else 'text-red-400' }}">
                                                 {{ player.get('player_stats', {}).get('K/D Ratio', '0') }}
                                             </td>
-                                            
-                                            <td class="text-center">{{ player.get('player_stats', {}).get('K/R Ratio', '0') }}</td>
                                             <td class="text-center">{{ player.get('player_stats', {}).get('Headshots %', '0') }}%</td>
                                             <td class="text-amber-400 text-center font-medium">{{ player.get('player_stats', {}).get('MVPs', '0') }}</td>
                                             <td class="text-center">{{ player.get('player_stats', {}).get('Triple Kills', '0') }}</td>
@@ -608,6 +1036,16 @@
         {% endif %}
     </main>
 
+    {% if is_analyzed and analysis_data %}
+    <!-- JSON payloads for interactive round viewer -->
+    <script id="roundsDataJson" type="application/json">
+        {{ analysis_data.rounds | tojson | safe }}
+    </script>
+    <script id="teamsMetaJson" type="application/json">
+        {{ analysis_data.teams_meta | tojson | safe }}
+    </script>
+    {% endif %}
+
     <script>
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -619,11 +1057,324 @@
             }
 
             if (tabId === 'clutchTab') document.getElementById('btnTabClutch')?.classList.add('active');
-            if (tabId === 'roundsTab') document.getElementById('btnTabRounds')?.classList.add('active');
+            if (tabId === 'roundsTab') {
+                document.getElementById('btnTabRounds')?.classList.add('active');
+                if (roundsData && roundsData.length > 0) {
+                    changeRound(currentRoundNum || 1);
+                }
+            }
             if (tabId === 'faceitTab') document.getElementById('btnTabFaceit')?.classList.add('active');
         }
 
+        let roundsData = [];
+        let teamsMeta = { team1: {}, team2: {} };
+        let currentRoundNum = 1;
+
+        try {
+            const roundsElem = document.getElementById('roundsDataJson');
+            if (roundsElem) {
+                roundsData = JSON.parse(roundsElem.textContent || '[]');
+            }
+            const teamsElem = document.getElementById('teamsMetaJson');
+            if (teamsElem) {
+                teamsMeta = JSON.parse(teamsElem.textContent || '{}');
+            }
+        } catch(e) {
+            console.error("Error parsing round data JSON:", e);
+        }
+
+        const sortStates = {};
+        function sortHtmlTable(tableId, colKey, defaultType = 'number') {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            if (rows.length === 0) return;
+
+            const stateKey = tableId + '_' + colKey;
+            let currentDir = sortStates[stateKey] || '';
+            let newDir = currentDir === 'desc' ? 'asc' : 'desc';
+            sortStates[stateKey] = newDir;
+            sortStates[tableId + '_activeCol'] = colKey;
+            sortStates[tableId + '_activeType'] = defaultType;
+
+            rows.sort((a, b) => {
+                let valA = a.getAttribute(`data-${colKey}`) ?? '';
+                let valB = b.getAttribute(`data-${colKey}`) ?? '';
+
+                if (defaultType === 'number') {
+                    const numA = parseFloat(valA) || 0;
+                    const numB = parseFloat(valB) || 0;
+                    return newDir === 'desc' ? numB - numA : numA - numB;
+                } else {
+                    return newDir === 'desc' 
+                        ? valB.localeCompare(valA) 
+                        : valA.localeCompare(valB);
+                }
+            });
+
+            rows.forEach(r => tbody.appendChild(r));
+
+            table.querySelectorAll('th[data-col]').forEach(th => {
+                const arrow = th.querySelector('.sort-arrow');
+                if (th.getAttribute('data-col') === colKey) {
+                    th.classList.add('sort-active');
+                    if (arrow) arrow.textContent = newDir === 'desc' ? ' ↓' : ' ↑';
+                } else {
+                    th.classList.remove('sort-active');
+                    if (arrow) arrow.textContent = '';
+                }
+            });
+        }
+
+        function reapplyTableSort(tableId) {
+            const activeCol = sortStates[tableId + '_activeCol'];
+            const activeType = sortStates[tableId + '_activeType'] || 'number';
+            if (activeCol) {
+                // Re-sort with current dir preserved
+                const stateKey = tableId + '_' + activeCol;
+                const prevDir = sortStates[stateKey];
+                // Toggle temporarily so sortHtmlTable sets it back to prevDir
+                sortStates[stateKey] = prevDir === 'desc' ? 'asc' : 'desc';
+                sortHtmlTable(tableId, activeCol, activeType);
+            }
+        }
+
+        function renderCaptainAvatar(avatarUrl, name) {
+            if (avatarUrl) {
+                return `<img src="${avatarUrl}" alt="Avatar" class="avatar-sm object-cover flex-shrink-0" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                        <div class="hidden avatar-sm flex items-center justify-center text-xs font-bold bg-slate-800 text-sky-400 border border-slate-700 flex-shrink-0">${(name || '?')[0].toUpperCase()}</div>`;
+            } else {
+                return `<div class="avatar-sm flex items-center justify-center text-xs font-bold bg-slate-800 text-sky-400 border border-slate-700 flex-shrink-0">${(name || '?')[0].toUpperCase()}</div>`;
+            }
+        }
+
+        function renderPlayerRow(p) {
+            const avatarHtml = p.avatar ? 
+                `<img src="${p.avatar}" alt="Avatar" class="player-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                 <div class="hidden player-avatar-placeholder">${(p.persona_name || '?')[0].toUpperCase()}</div>` :
+                `<div class="player-avatar-placeholder">${(p.persona_name || '?')[0].toUpperCase()}</div>`;
+
+            const impact = parseFloat(p.impact || 0);
+            let impactClass = 'rating-low';
+            if (impact >= 1.25) impactClass = 'rating-elite';
+            else if (impact >= 1.0) impactClass = 'rating-good';
+            else if (impact >= 0.75) impactClass = 'rating-average';
+
+            const impactText = (impact >= 0 ? '+' : '') + impact.toFixed(2);
+
+            let entryHtml = '<span class="text-slate-600">-</span>';
+            let entryScore = 0;
+            if (p.entry_success) {
+                entryScore = 1;
+                entryHtml = '<span class="clutch-badge-win">1/1 Win</span>';
+            } else if (p.entry_attempt) {
+                entryScore = 0.5;
+                entryHtml = '<span class="clutch-badge-fail">0/1 Att</span>';
+            }
+
+            let clutchHtml = '<span class="text-slate-600">-</span>';
+            let clutchScore = 0;
+            if (p.clutch_scenario) {
+                const formattedScenario = (p.clutch_scenario || '').replace(/1v/g, '1vs');
+                if (p.clutch_won) {
+                    clutchScore = 1;
+                    clutchHtml = `<span class="clutch-badge-win">${formattedScenario} Win</span>`;
+                } else {
+                    clutchScore = 0.5;
+                    clutchHtml = `<span class="clutch-badge-fail">${formattedScenario} Fail</span>`;
+                }
+            }
+
+            return `
+                <tr data-name="${(p.persona_name || p.steam_id || '').toLowerCase()}" data-impact="${impact}" data-kills="${p.kills || 0}" data-deaths="${p.deaths || 0}" data-assists="${p.assists || 0}" data-damage="${Math.round(p.damage_dealt || 0)}" data-entry="${entryScore}" data-trade="${p.trade_kills || 0}" data-util="${p.utility_damage || 0}" data-flash="${p.enemies_flashed || 0}" data-clutch="${clutchScore}">
+                    <td class="font-medium text-white py-3">
+                        <a href="/player/${p.steam_id}" class="player-profile-cell group">
+                            ${avatarHtml}
+                            <span class="player-name-text group-hover:text-sky-300 transition-colors">${p.persona_name || p.steam_id}</span>
+                        </a>
+                    </td>
+                    <td class="text-center py-3">
+                        <span class="rating-badge text-xs py-0.5 px-2 ${impactClass}">${impactText}</span>
+                    </td>
+                    <td class="text-center font-medium text-xs py-3">
+                        <span class="${p.kills > 0 ? 'text-white font-bold' : 'text-slate-400'}">${p.kills}</span> / 
+                        <span class="${p.deaths > 0 ? 'text-red-400' : 'text-slate-400'}">${p.deaths}</span> / 
+                        <span class="text-slate-400">${p.assists}</span>
+                    </td>
+                    <td class="text-center text-amber-300 font-mono text-xs font-bold py-3">
+                        ${Math.round(p.damage_dealt || 0)}
+                    </td>
+                    <td class="text-center text-xs py-3">
+                        ${entryHtml}
+                    </td>
+                    <td class="text-center text-xs py-3 ${p.trade_kills > 0 ? 'text-sky-300 font-bold' : 'text-slate-600'}">
+                        ${p.trade_kills > 0 ? p.trade_kills : '-'}
+                    </td>
+                    <td class="text-center text-xs py-3 ${p.utility_damage > 0 ? 'text-purple-300 font-bold' : 'text-slate-600'}">
+                        ${p.utility_damage > 0 ? Math.round(p.utility_damage) : '-'}
+                    </td>
+                    <td class="text-center text-xs py-3 ${p.enemies_flashed > 0 ? 'text-slate-300 font-semibold' : 'text-slate-600'}">
+                        ${p.enemies_flashed > 0 ? p.enemies_flashed : '-'}
+                    </td>
+                    <td class="text-center text-xs py-3">
+                        ${clutchHtml}
+                    </td>
+                </tr>
+            `;
+        }
+
+        function changeRound(roundNum) {
+            if (!roundsData || roundsData.length === 0) return;
+            
+            currentRoundNum = Math.max(1, Math.min(roundNum, roundsData.length));
+            const r = roundsData.find(item => item.round_number === currentRoundNum) || roundsData[currentRoundNum - 1];
+            if (!r) return;
+
+            // 1. Update Selector & Counter
+            const sel = document.getElementById('roundSelector');
+            if (sel) sel.value = currentRoundNum;
+
+            const titleNum = document.getElementById('roundNumberTitle');
+            if (titleNum) titleNum.textContent = '#' + currentRoundNum;
+
+            const btnPrev = document.getElementById('btnPrevRound');
+            if (btnPrev) btnPrev.disabled = (currentRoundNum <= 1);
+
+            const btnNext = document.getElementById('btnNextRound');
+            if (btnNext) btnNext.disabled = (currentRoundNum >= roundsData.length);
+
+            // Update pills
+            document.querySelectorAll('.round-pill').forEach(pill => {
+                pill.classList.remove('ring-2', 'ring-white', 'scale-105', 'font-black');
+            });
+            const activePill = document.getElementById('pillRound' + currentRoundNum);
+            if (activePill) {
+                activePill.classList.add('ring-2', 'ring-white', 'scale-105', 'font-black');
+                activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+
+            // 2. Update Team 1
+            const t1CapContainer = document.getElementById('team1CapAvatarContainer');
+            if (t1CapContainer) {
+                t1CapContainer.innerHTML = renderCaptainAvatar(teamsMeta.team1?.captain_avatar, teamsMeta.team1?.name);
+            }
+            const t1SideBadge = document.getElementById('team1SideBadge');
+            if (t1SideBadge) {
+                const side = r.team1_side || 'CT';
+                t1SideBadge.textContent = side;
+                t1SideBadge.className = `text-[10px] font-black uppercase px-2 py-0.5 rounded ${side === 'CT' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}`;
+            }
+            const t1Outcome = document.getElementById('team1OutcomeBadge');
+            if (t1Outcome) {
+                if (r.team1_won) {
+                    t1Outcome.innerHTML = '<span class="px-2.5 py-1 rounded-lg text-xs font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm">✓ WIN</span>';
+                } else {
+                    t1Outcome.innerHTML = '<span class="px-2.5 py-1 rounded-lg text-xs font-black bg-slate-800 text-slate-400 border border-slate-700">LOSS</span>';
+                }
+            }
+            const t1Tbody = document.getElementById('team1RoundTableBody');
+            if (t1Tbody) {
+                const players = r.team1_players || [];
+                t1Tbody.innerHTML = players.map(p => renderPlayerRow(p)).join('');
+                reapplyTableSort('team1RoundTable');
+            }
+
+            // 3. Update Team 2
+            const t2CapContainer = document.getElementById('team2CapAvatarContainer');
+            if (t2CapContainer) {
+                t2CapContainer.innerHTML = renderCaptainAvatar(teamsMeta.team2?.captain_avatar, teamsMeta.team2?.name);
+            }
+            const t2SideBadge = document.getElementById('team2SideBadge');
+            if (t2SideBadge) {
+                const side = r.team2_side || 'T';
+                t2SideBadge.textContent = side;
+                t2SideBadge.className = `text-[10px] font-black uppercase px-2 py-0.5 rounded ${side === 'CT' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}`;
+            }
+            const t2Outcome = document.getElementById('team2OutcomeBadge');
+            if (t2Outcome) {
+                if (r.team2_won) {
+                    t2Outcome.innerHTML = '<span class="px-2.5 py-1 rounded-lg text-xs font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm">✓ WIN</span>';
+                } else {
+                    t2Outcome.innerHTML = '<span class="px-2.5 py-1 rounded-lg text-xs font-black bg-slate-800 text-slate-400 border border-slate-700">LOSS</span>';
+                }
+            }
+            const t2Tbody = document.getElementById('team2RoundTableBody');
+            if (t2Tbody) {
+                const players = r.team2_players || [];
+                t2Tbody.innerHTML = players.map(p => renderPlayerRow(p)).join('');
+                reapplyTableSort('team2RoundTable');
+            }
+
+            // 4. Update MVP
+            const mvp = r.mvp_data || {};
+            const mvpContainer = document.getElementById('mvpAvatarContainer');
+            if (mvpContainer) {
+                if (mvp.avatar) {
+                    mvpContainer.innerHTML = `<img src="${mvp.avatar}" alt="MVP Avatar" class="w-14 h-14 rounded-2xl object-cover ring-2 ring-amber-400 ring-offset-2 ring-offset-slate-900 shadow-lg" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                        <div class="hidden w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black bg-slate-800 text-amber-300 ring-2 ring-amber-400 ring-offset-2 ring-offset-slate-900 shadow-lg">${(mvp.persona_name || '?')[0].toUpperCase()}</div>`;
+                } else {
+                    mvpContainer.innerHTML = `<div class="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black bg-slate-800 text-amber-300 ring-2 ring-amber-400 ring-offset-2 ring-offset-slate-900 shadow-lg">${(mvp.persona_name || '?')[0].toUpperCase()}</div>`;
+                }
+            }
+            const mvpNick = document.getElementById('mvpNick');
+            if (mvpNick) mvpNick.textContent = mvp.persona_name || 'Nieznany';
+
+            const mvpSide = document.getElementById('mvpSideBadge');
+            if (mvpSide) {
+                const side = mvp.side_played || '';
+                mvpSide.textContent = side;
+                mvpSide.className = `px-1.5 py-0.5 rounded text-[10px] font-black uppercase ${side === 'CT' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30' : (side === 'T' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'hidden')}`;
+            }
+
+            const mvpImpact = document.getElementById('mvpImpact');
+            if (mvpImpact) {
+                const imp = parseFloat(mvp.impact || 0);
+                mvpImpact.textContent = (imp >= 0 ? '+' : '') + imp.toFixed(2);
+                mvpImpact.className = `font-bold text-xs ${imp >= 1.25 ? 'text-emerald-400' : (imp >= 1.0 ? 'text-sky-300' : (imp >= 0.75 ? 'text-amber-300' : 'text-slate-400'))}`;
+            }
+
+            const mvpKda = document.getElementById('mvpKda');
+            if (mvpKda) mvpKda.textContent = `${mvp.kills || 0} / ${mvp.deaths || 0} / ${mvp.assists || 0}`;
+
+            const mvpDmg = document.getElementById('mvpDamage');
+            if (mvpDmg) mvpDmg.textContent = `${mvp.damage_dealt || 0}`;
+
+            const mvpUtil = document.getElementById('mvpUtility');
+            if (mvpUtil) mvpUtil.textContent = `${mvp.utility_damage || 0}`;
+
+            // 5. Update Sposób zakończenia
+            const winBadge = document.getElementById('roundWinnerBadge');
+            if (winBadge) {
+                const side = r.winning_side || 'CT';
+                winBadge.textContent = `${side} WIN`;
+                winBadge.className = `inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-xs font-black tracking-wide uppercase shadow-md ${side === 'CT' ? 'bg-gradient-to-r from-sky-600 to-sky-500 text-white border border-sky-400/50 shadow-sky-500/20' : 'bg-gradient-to-r from-amber-600 to-amber-500 text-white border border-amber-400/50 shadow-amber-500/20'}`;
+            }
+            const reasonIcon = document.getElementById('roundReasonIcon');
+            if (reasonIcon) reasonIcon.textContent = r.win_reason_icon || '🏆';
+
+            const reasonText = document.getElementById('roundReasonText');
+            if (reasonText) reasonText.textContent = r.win_reason_text || r.win_reason || 'Zwycięstwo rundy';
+
+            const duration = document.getElementById('roundDuration');
+            if (duration) duration.textContent = `${r.duration_seconds || 0}s`;
+        }
+
+        function prevRound() {
+            if (currentRoundNum > 1) changeRound(currentRoundNum - 1);
+        }
+
+        function nextRound() {
+            if (roundsData && currentRoundNum < roundsData.length) changeRound(currentRoundNum + 1);
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
+            // Initialize first round display if rounds available
+            if (roundsData && roundsData.length > 0) {
+                changeRound(1);
+            }
+
             // URL params for notifications
             const urlParams = new URLSearchParams(window.location.search);
             const errorMsg = urlParams.get('error');
@@ -654,52 +1405,141 @@
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
-            // Interactive Analysis Submission
-            const analyzeForm = document.getElementById('analyzeForm');
-            const btnAnalyze = document.getElementById('btnAnalyze');
+            // Toggle manual analysis options
+            window.toggleManualAnalysis = function() {
+                const sec = document.getElementById('manualAnalysisSection');
+                if (sec) {
+                    sec.classList.toggle('hidden');
+                }
+            };
+
             const analyzeProgress = document.getElementById('analyzeProgress');
+            const progressStatusText = document.getElementById('progressStatusText');
+            const progressBarFill = document.getElementById('progressBarFill');
 
-            if (analyzeForm && btnAnalyze) {
-                analyzeForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    btnAnalyze.disabled = true;
-                    btnAnalyze.classList.add('opacity-50', 'cursor-not-allowed');
-                    if (analyzeProgress) {
-                        analyzeProgress.classList.remove('hidden');
+            function showProgress(text) {
+                if (analyzeProgress) analyzeProgress.classList.remove('hidden');
+                if (progressStatusText) progressStatusText.textContent = text || 'Przetwarzanie powtórki demo...';
+            }
+
+            function hideProgress() {
+                if (analyzeProgress) analyzeProgress.classList.add('hidden');
+            }
+
+            // Setup Dropzones (Main + Reupload)
+            function setupDropzone(dropId, inputId, labelId) {
+                const dropzone = document.getElementById(dropId);
+                const fileInput = document.getElementById(inputId);
+                const label = labelId ? document.getElementById(labelId) : null;
+
+                if (!dropzone || !fileInput) return;
+
+                dropzone.addEventListener('click', () => fileInput.click());
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropzone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropzone.classList.add('border-sky-400', 'bg-sky-950/40');
+                    }, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropzone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropzone.classList.remove('border-sky-400', 'bg-sky-950/40');
+                    }, false);
+                });
+
+                dropzone.addEventListener('drop', (e) => {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+                    if (files && files.length > 0) {
+                        handleFileUpload(files[0], label);
                     }
+                });
 
-                    try {
-                        const response = await fetch('/api/match/{{ match_id }}/analyze', {
-                            method: 'POST',
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            }
-                        });
-
-                        const data = await response.json();
-                        if (response.ok && data.success) {
-                            window.location.href = '/match/{{ match_id }}?success=' + encodeURIComponent(data.message || 'Analiza powtórki zakończona sukcesem!');
-                        } else {
-                            const err = data.error || 'Nie udało się przeanalizować meczu.';
-                            window.location.href = '/match/{{ match_id }}?error=' + encodeURIComponent(err);
-                        }
-                    } catch (err) {
-                        // Fallback to standard form submission if fetch fails
-                        analyzeForm.submit();
+                fileInput.addEventListener('change', () => {
+                    if (fileInput.files && fileInput.files.length > 0) {
+                        handleFileUpload(fileInput.files[0], label);
                     }
                 });
             }
 
-            // Re-analyze submission
-            const reanalyzeForm = document.getElementById('reanalyzeForm');
-            const btnReanalyze = document.getElementById('btnReanalyze');
-            if (reanalyzeForm && btnReanalyze) {
-                reanalyzeForm.addEventListener('submit', function() {
-                    btnReanalyze.disabled = true;
-                    btnReanalyze.innerHTML = `<svg class="spin-loader w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Analizowanie...`;
-                });
+            setupDropzone('dropzoneArea', 'demoFileInput', 'selectedFileName');
+            setupDropzone('dropzoneAreaReupload', 'demoFileInputReupload', null);
+
+            async function handleFileUpload(file, labelElement) {
+                if (!file) return;
+                const name = file.name.toLowerCase();
+                if (!name.endsWith('.dem') && !name.endsWith('.zst') && !name.endsWith('.gz')) {
+                    alert('Proszę wybrać poprawny plik powtórki (.dem, .dem.zst lub .dem.gz)');
+                    return;
+                }
+
+                const matchId = '{{ match_id }}'.toLowerCase();
+                const cleanMatchId = matchId.replace(/^1-/, '');
+                if (!name.includes(cleanMatchId) && !name.includes(matchId)) {
+                    alert(`Przesłany plik (${file.name}) nie pasuje do tego meczu!\n\nUpewnij się, że wgrywasz oryginalny plik powtórki pobrany z Faceit dla meczu:\n{{ match_id }}`);
+                    return;
+                }
+
+                if (labelElement) {
+                    labelElement.textContent = 'Wybrano: ' + file.name + ' (' + (file.size / (1024*1024)).toFixed(1) + ' MB)';
+                    labelElement.classList.remove('hidden');
+                }
+
+                showProgress('Wysyłanie pliku ' + file.name + ' na serwer i analizowanie... Proszę czekać.');
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/api/match/{{ match_id }}/upload-demo', true);
+
+                    xhr.upload.onprogress = function(e) {
+                        if (e.lengthComputable && progressBarFill) {
+                            const percent = (e.loaded / e.total) * 100;
+                            progressBarFill.style.width = percent + '%';
+                            if (percent < 100) {
+                                showProgress(`Wysyłanie pliku demo: ${Math.round(percent)}%...`);
+                            } else {
+                                showProgress('Plik przesłany! Trwa rozpakowywanie i zaawansowana analiza statystyk meczu...');
+                            }
+                        }
+                    };
+
+                    xhr.onload = function() {
+                        if (xhr.status === 200) {
+                            try {
+                                const data = JSON.parse(xhr.responseText);
+                                window.location.href = '/match/{{ match_id }}?success=' + encodeURIComponent(data.message || 'Analiza pliku zakończona sukcesem!');
+                            } catch (e) {
+                                window.location.reload();
+                            }
+                        } else {
+                            hideProgress();
+                            try {
+                                const data = JSON.parse(xhr.responseText);
+                                alert(data.error || 'Wystąpił błąd podczas analizy pliku demo.');
+                            } catch (e) {
+                                alert('Błąd serwera podczas analizy pliku (' + xhr.status + ').');
+                            }
+                        }
+                    };
+
+                    xhr.onerror = function() {
+                        hideProgress();
+                        alert('Błąd sieci podczas przesyłania pliku powtórki.');
+                    };
+
+                    xhr.send(formData);
+                } catch (err) {
+                    hideProgress();
+                    alert('Błąd podczas wysyłania pliku: ' + err.message);
+                }
             }
         });
     </script>

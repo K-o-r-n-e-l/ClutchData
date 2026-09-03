@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClutchDATA+ - Nowy wymiar statystyk</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/static/main.css">
-    <link rel="stylesheet" href="/static/components.css">
+    <link rel="stylesheet" href="/static/main.css?v=2.1">
     <style>
         .hero-glow {
             background: radial-gradient(circle at center, rgba(234, 179, 8, 0.15) 0%, transparent 70%);
@@ -29,7 +28,7 @@
 
     <!-- Navbar -->
     <nav class="glass-panel navbar relative z-10">
-        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8">
             <div class="navbar-content">
                 <div class="flex items-center">
                     <a href="/" class="brand-logo" style="text-decoration:none">
@@ -50,23 +49,23 @@
         </div>
     </nav>
 
-    <main class="flex-1 flex items-center justify-center relative z-10 p-6">
+    <main class="plus-info-main">
         <div class="max-w-4xl w-full">
             <div class="text-center mb-12">
-                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 mb-6 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
+                <div class="plus-badge-circle">
                     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                 </div>
-                <h1 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight drop-shadow-md">
+                <h1 class="plus-hero-title">
                     Wkrocz na wyższy poziom z <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600">ClutchDATA+</span>
                 </h1>
-                <p class="text-lg text-slate-400 max-w-2xl mx-auto">
+                <p class="plus-hero-desc">
                     Dołącz do elitarnego grona graczy, którzy analizują swoje postępy w czasie rzeczywistym.
                 </p>
             </div>
 
-            <div class="grid md:grid-cols-3 gap-6 mb-12">
-                <div class="feature-card rounded-2xl p-6 text-center">
-                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center mx-auto mb-4">
+            <div class="plus-features-grid">
+                <div class="plus-feature-card">
+                    <div class="plus-feature-icon bg-blue-500/10 border border-blue-500/30 text-blue-400">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                     </div>
                     <h3 class="text-xl font-bold text-white mb-2">Analiza Powtórek Demo</h3>
@@ -74,8 +73,8 @@
                         Pobieraj i analizuj oficjalne dema z Faceit: ClutchRating, 1vX clutch, wejścia entry i obrażenia z granatów.
                     </p>
                 </div>
-                <div class="feature-card rounded-2xl p-6 text-center">
-                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center mx-auto mb-4">
+                <div class="plus-feature-card">
+                    <div class="plus-feature-icon bg-purple-500/10 border border-purple-500/30 text-purple-400">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     </div>
                     <h3 class="text-xl font-bold text-white mb-2">Śledzenie na Żywo</h3>
@@ -83,8 +82,8 @@
                         Twoje konto jest stale monitorowane. Automatycznie wychwytujemy każdy mecz i odnotowujemy zmiany ELO.
                     </p>
                 </div>
-                <div class="feature-card rounded-2xl p-6 text-center">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto mb-4">
+                <div class="plus-feature-card">
+                    <div class="plus-feature-icon bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                     </div>
                     <h3 class="text-xl font-bold text-white mb-2">Zaawansowana Historia</h3>
@@ -94,19 +93,19 @@
                 </div>
             </div>
 
-            <div class="glass-panel p-8 rounded-3xl border border-slate-700/50 shadow-2xl max-w-2xl mx-auto">
+            <div class="plus-cta-panel">
                 <h2 class="text-2xl font-bold text-white text-center mb-6">Czy chcesz aktywować śledzenie konta?</h2>
                 <p class="text-center text-slate-400 text-sm mb-8">
                     Akceptując, wyrażasz zgodę na automatyczne pobieranie Twoich statystyk meczowych z platformy FACEIT oraz ich przesyłanie i przetwarzanie w celu generowania podsumowań. Usługa jest w 100% darmowa.
                 </p>
                 
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <a href="/player/{{ steam_id }}" class="px-6 py-3 rounded-xl font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-white transition-all w-full sm:w-auto text-center border border-slate-700">
+                    <a href="/player/{{ steam_id }}" class="plus-btn-reject w-full sm:w-auto">
                         Odrzuć i wróć
                     </a>
                     
                     <form action="/plus/accept" method="POST" class="w-full sm:w-auto">
-                        <button type="submit" class="px-8 py-3 rounded-xl font-bold text-yellow-900 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-300 hover:to-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.4)] hover:shadow-[0_0_30px_rgba(234,179,8,0.6)] transition-all transform hover:-translate-y-0.5 w-full">
+                        <button type="submit" class="plus-btn-accept">
                             Akceptuj i Aktywuj
                         </button>
                     </form>

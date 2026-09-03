@@ -173,7 +173,11 @@ def test_demo_save_and_retrieve():
             assert enriched["teams"][1]["captain_name"] == "CaptainBeta"
             assert enriched["teams"][1]["captain_avatar"] == "https://example.com/cap2.jpg"
 
-            # 6. Verify match.html template rendering with captain avatar
+            assert "match_mvp" in enriched
+            assert enriched["match_mvp"]["persona_name"] == "TestPlayer"
+            assert "winner_meta" in enriched
+
+            # 6. Verify match.html template rendering with captain avatar & interactive rounds tab
             from jinja2 import Environment, FileSystemLoader, select_autoescape
             env = Environment(loader=FileSystemLoader('app/templates'), autoescape=select_autoescape(['html']))
             t = env.get_template('match.html')
@@ -194,6 +198,56 @@ def test_demo_save_and_retrieve():
             assert "https://example.com/cap1.jpg" in rendered
             assert "CaptainAlpha" in rendered
             assert "Team Alpha" in rendered
+            assert "MVPs" in rendered
+            assert "MVP MECZU" in rendered
+            assert "Wynik Meczu" in rendered
+
+            # Verify new 3-column rounds review components and multi-method upload options
+            assert "roundsDataJson" in rendered
+            assert "teamsMetaJson" in rendered
+            assert "roundSelector" in rendered
+            assert "team1RoundTableBody" in rendered
+            assert "team2RoundTableBody" in rendered
+            assert "mvpAvatarContainer" in rendered
+            assert "roundWinnerBadge" in rendered
+            assert "roundReasonText" in rendered
+
+            # Verify unanalyzed template renders dropzone and direct URL options
+            rendered_unanalyzed = t.render(
+                request=type('R', (), {'session': {'logged_steam_id': '76561198000000001'}})(),
+                logged_player_summary={'personaname': 'TestPlayer', 'avatar': ''},
+                steam_id='76561198000000001',
+                player_summary={'personaname': 'TestPlayer', 'avatar': ''},
+                match_id=test_match_id,
+                match_info=match_info_with_captains,
+                match_stats={'rounds': [{'round_stats': {'Map': 'de_mirage', 'Score': '13 - 10'}}]},
+                avatars={'p1_faceit_id': 'https://example.com/cap1.jpg'},
+                clutchdata_plus=True,
+                is_analyzed=False,
+                analysis_data=None,
+                has_demo=True
+            )
+            assert "dropzoneArea" in rendered_unanalyzed
+            assert "demoFileInput" in rendered_unanalyzed
+            # 7. Verify roster & match ID integrity verification
+            from app.services.demo_service import verify_demo_matches_roster
+            # Matches correctly:
+            verify_demo_matches_roster(match_info_with_captains, parsed_data)
+
+            # Different match info with mismatched players:
+            mismatched_match_info = {
+                "teams": {
+                    "faction1": {"roster": [{"game_player_id": "99999999999999999"}]},
+                    "faction2": {"roster": [{"game_player_id": "88888888888888888"}]}
+                }
+            }
+            try:
+                verify_demo_matches_roster(mismatched_match_info, parsed_data)
+                assert False, "Should have raised ValueError for mismatched roster"
+            except ValueError as e:
+                assert "nie zgadza się ze składem tego meczu" in str(e)
 
     asyncio.run(_test())
+
+
 

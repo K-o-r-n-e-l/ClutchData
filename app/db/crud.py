@@ -197,7 +197,6 @@ async def save_analyzed_demo_data(
             match_id=match.id,
             player_id=pid,
             clutchdata_rating=cr,
-            ClutchRating=cr,
             entry_attempts=int(ms_row.get('entry_attempts', 0)),
             entry_success=int(ms_row.get('entry_success', 0)),
             clutch_1v1_attempts=int(ms_row.get('clutch_1v1_attempts', 0)),
@@ -357,4 +356,61 @@ async def get_full_analyzed_match_data(db: AsyncSession, faceit_match_id: str) -
         "player_stats": player_stats_list,
         "rounds": rounds_data,
         "total_rounds": len(rounds_data)
+    }
+
+
+
+async def player_ratings_dashboard(db: AsyncSession, steam_id: str):
+    query = select(Player).where(Player.steam_id == steam_id)
+    result = await db.execute(query)
+    player = result.scalars().first()
+    
+    # 1. Zabezpieczenie przed brakiem gracza w bazie
+    if not player:
+        return {
+            "average_rating": None,
+            "match_ratings": {}
+        }
+    
+    player_id = player.id
+
+    # 2. Pobieramy statystyki gracza i bezpiecznie obliczamy średni rating
+    query = select(MatchStatistic).where(MatchStatistic.player_id == player_id)
+    player_stats_result = await db.execute(query)
+    player_stats = player_stats_result.scalars().all()
+    
+    valid_ratings = [
+        float(stat.clutchdata_rating)
+        for stat in player_stats
+        if stat.clutchdata_rating is not None and stat.clutchdata_rating > 0
+    ]
+    avg_rating = round(sum(valid_ratings) / len(valid_ratings), 2) if len(valid_ratings) > 0 else None
+
+    # 3. Pobieramy przypisanie meczy do obliczonego ratingu
+    query = (
+        select(
+            Match.faceit_match_id,
+            MatchStatistic.clutchdata_rating
+        )
+        .join(
+            MatchStatistic,
+            MatchStatistic.match_id == Match.id
+        )
+        .where(
+            MatchStatistic.player_id == player_id
+        )
+    )
+
+    result = await db.execute(query)
+    matches_faceit = result.mappings().all()
+
+    match_ratings = {}
+    for match in matches_faceit:
+        cdr = match.get('clutchdata_rating')
+        if cdr is not None and cdr > 0:
+            match_ratings[match['faceit_match_id']] = round(float(cdr), 2)
+
+    return {
+        "average_rating": avg_rating,
+        "match_ratings": match_ratings
     }
