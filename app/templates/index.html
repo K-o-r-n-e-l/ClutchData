@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClutchDATA - CS2 Stats</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/static/main.css">
-    <link rel="stylesheet" href="/static/components.css">
+    <link rel="stylesheet" href="/static/main.css?v=2.1">
 </head>
-<body class="bg-index flex items-center justify-center p-4">
+<body class="bg-index page-login-body">
     <div class="glass-panel login-card">
         <div class="mb-8">
             <h1 class="login-title">
@@ -26,7 +25,7 @@
             <p class="login-desc">Zaloguj się swoim kontem Steam, aby uzyskać dostęp do szczegółowych statystyk, historii meczów oraz analizy Twoich osiągnięć.</p>
         </div>
 
-        <a href="/auth/steam/login" class="steam-btn w-full inline-flex items-center justify-center gap-3 py-3 px-6 rounded-lg text-white font-semibold text-lg">
+        <a href="/auth/steam/login" class="steam-btn login-steam-btn">
             <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" class="h-12 w-12" alt="Steam logo">
             Zaloguj przez Steam
         </a>

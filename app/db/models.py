@@ -62,7 +62,6 @@ class MatchStatistic(Base):
 
     # Obliczony z algorytmu dla dema
     clutchdata_rating = Column(Float, default=0.0)
-    ClutchRating = Column(Float, default=0.0)  # Ostateczny rating ClutchData dla tego gracza w tym meczu
     
     # Statystyki z dema: entry
     entry_attempts = Column(Integer, default=0)

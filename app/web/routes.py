@@ -1,16 +1,17 @@
 import os
 import httpx
 import asyncio
-from fastapi import APIRouter, Request, Depends, HTTPException, Form
+from typing import Optional
+from fastapi import APIRouter, Request, Depends, HTTPException, Form, UploadFile, File
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from app.services.steam_stats import load_steam_data, hours_counter, validate_steam_login, resolve_steam_vanity_url
 from app.services.faceit_stats import load_faceit_data, fetch_match_stats, get_match_details, load_faceit_data_by_id, faceit_steam_id_validation
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
-from app.db.crud import save_faceit_elo, get_player_by_steam_id, enable_clutchdata_plus, is_match_analyzed, get_full_analyzed_match_data
+from app.db.crud import save_faceit_elo, get_player_by_steam_id, enable_clutchdata_plus, is_match_analyzed, get_full_analyzed_match_data, player_ratings_dashboard
 from urllib.parse import quote_plus
-from app.services.demo_service import analyze_match_demo, enrich_analyzed_teams
+from app.services.demo_service import analyze_uploaded_demo, enrich_analyzed_teams
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -110,7 +111,7 @@ async def dashboard(request: Request, steam_id: str, db: AsyncSession = Depends(
     # Check if the currently viewed player has ClutchData+ enabled
     player_db = await get_player_by_steam_id(db, steam_id)
     clutchdata_plus = getattr(player_db, 'clutchdata_plus', False) if player_db else False
-
+    player_ratings = await player_ratings_dashboard(db, steam_id)
 
     return templates.TemplateResponse(
         request=request,
@@ -125,7 +126,8 @@ async def dashboard(request: Request, steam_id: str, db: AsyncSession = Depends(
             "faceit_history": faceit_history,
             "hours_played": hours_played,
             "clutchdata_plus": clutchdata_plus,
-            "api_key_missing": not api_key or api_key == "your_steam_api_key_here"
+            "api_key_missing": not api_key or api_key == "your_steam_api_key_here",
+            "player_ratings": player_ratings
         }
     )
 
@@ -217,8 +219,16 @@ async def match_details(request: Request, match_id: str, db: AsyncSession = Depe
         }
     )
 
-@router.post("/match/{match_id}/analyze")
-async def analyze_match(request: Request, match_id: str, db: AsyncSession = Depends(get_db)):
+
+
+
+@router.post("/match/{match_id}/upload-demo")
+async def upload_match_demo(
+    request: Request,
+    match_id: str,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db)
+):
     logged_steam_id = request.session.get("logged_steam_id") or request.session.get("steam_id")
     if not logged_steam_id:
         return RedirectResponse(url="/", status_code=302)
@@ -228,14 +238,25 @@ async def analyze_match(request: Request, match_id: str, db: AsyncSession = Depe
     if not clutchdata_plus:
         return RedirectResponse(url=f"/match/{match_id}?error=Wymagana+aktywacja+ClutchData%2B", status_code=302)
 
-    faceit_api_key = os.getenv("FACEIT_API_KEY")
-    result = await analyze_match_demo(db, match_id, faceit_api_key)
+    filename = file.filename or "demo.dem"
+    low_name = filename.lower()
+    if not (low_name.endswith(".dem") or low_name.endswith(".zst") or low_name.endswith(".gz")):
+        return RedirectResponse(url=f"/match/{match_id}?error=Nieobsługiwany+format+pliku.+Wymagany+.dem,+.dem.zst+lub+.gz", status_code=302)
 
-    if result.get("success"):
-        return RedirectResponse(url=f"/match/{match_id}?success=Analiza+ClutchData%2B+zako%C5%84czona+sukcesem!", status_code=302)
-    else:
-        err = result.get("error", "Wystąpił nieoczekiwany błąd podczas analizy meczu.")
-        return RedirectResponse(url=f"/match/{match_id}?error={quote_plus(err)}", status_code=302)
+    faceit_api_key = os.getenv("FACEIT_API_KEY")
+    try:
+        content = await file.read()
+        if len(content) == 0:
+            return RedirectResponse(url=f"/match/{match_id}?error=Przesłany+plik+jest+pusty", status_code=302)
+
+        result = await analyze_uploaded_demo(db, match_id, faceit_api_key, content, filename)
+        if result.get("success"):
+            return RedirectResponse(url=f"/match/{match_id}?success=Analiza+z+wgranego+pliku+zako%C5%84czona+sukcesem!", status_code=302)
+        else:
+            err = result.get("error", "Błąd podczas analizy pliku.")
+            return RedirectResponse(url=f"/match/{match_id}?error={quote_plus(err)}", status_code=302)
+    except Exception as e:
+        return RedirectResponse(url=f"/match/{match_id}?error={quote_plus(str(e))}", status_code=302)
 
 @router.get("/search", response_class=RedirectResponse)
 async def search_player(request: Request, steam_url: str = ""):

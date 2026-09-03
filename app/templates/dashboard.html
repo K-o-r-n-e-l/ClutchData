@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - ClutchDATA</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/static/main.css">
-    <link rel="stylesheet" href="/static/components.css">
+    <link rel="stylesheet" href="/static/main.css?v=2.1">
 </head>
 <body class="bg-dashboard text-slate-200 font-sans min-h-screen">
     <!-- Navbar -->
     <nav class="glass-panel navbar">
-        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8">
             <div class="navbar-content">
                 <!-- Left: Logo -->
                 <div class="flex items-center">
@@ -44,16 +43,16 @@
         </div>
     </nav>
 
-    <main class="max-w-[1200px] mx-auto px-4 py-8">
+    <main class="max-w-[1650px] mx-auto px-4 py-8">
         <!-- Hero Section -->
         <div class="glass-panel hero-section">
             
             <!-- Left: User Info -->
-            <div class="flex items-center gap-6 min-w-[300px]">
+            <div class="flex items-center gap-6 min-w-[280px]">
                 {% if player_summary %}
-                <img src="{{ player_summary.avatarfull }}" alt="{{ player_summary.personaname }}" class="avatar-lg">
+                <img src="{{ player_summary.avatarfull }}" alt="{{ player_summary.personaname }}" class="avatar-lg ring-2 ring-slate-700/60">
                 <div>
-                    <h1 class="hero-title">{{ player_summary.personaname }}</h1>
+                    <h1 class="hero-title tracking-tight">{{ player_summary.personaname }}</h1>
                     <div class="status-badge-online">
                         <span class="status-dot"></span>
                         Połączono
@@ -63,8 +62,9 @@
             </div>
 
             <!-- Middle: Logos & Ranks -->
-            <div class="flex flex-1 items-center justify-center gap-12 lg:border-x border-slate-700/50 px-12 py-2">
-                <div class="flex flex-col items-center gap-2">
+            <div class="dashboard-hero-ranks">
+                <!-- Faceit Level & Elo -->
+                <div class="flex items-center gap-4">
                     {% if faceit_data and faceit_data.get('games') and faceit_data.get('games').get('cs2') %}
                         {% set lvl = faceit_data.get('games').get('cs2').get('skill_level', 1) | int %}
                         {% set bg_color = '#EEEEEE' %}
@@ -72,26 +72,30 @@
                         {% if lvl >= 4 and lvl <= 7 %}{% set bg_color = '#FFBA00' %}{% endif %}
                         {% if lvl >= 8 and lvl <= 9 %}{% set bg_color = '#FF5E00' %}{% endif %}
                         {% if lvl == 10 %}{% set bg_color = '#FE0000' %}{% endif %}
-                        <div class="relative w-16 h-16 rounded-full flex items-center justify-center drop-shadow-lg bg-[#222222]">
+                        <div class="relative w-16 h-16 rounded-full flex items-center justify-center drop-shadow-lg bg-[#182030] border border-slate-700/80">
                             <svg class="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="45" fill="none" stroke="#333333" stroke-width="10"></circle>
-                                <circle cx="50" cy="50" r="45" fill="none" stroke="{{ bg_color }}" stroke-width="10" stroke-dasharray="283" stroke-dashoffset="60" stroke-linecap="round"></circle>
+                                <circle cx="50" cy="50" r="44" fill="none" stroke="#253248" stroke-width="8"></circle>
+                                <circle cx="50" cy="50" r="44" fill="none" stroke="{{ bg_color }}" stroke-width="8" stroke-dasharray="276" stroke-dashoffset="55" stroke-linecap="round"></circle>
                             </svg>
                             <span class="relative z-10 font-black text-2xl text-white drop-shadow">{{ lvl }}</span>
                         </div>
-                        <span class="text-slate-300 text-sm mt-1">Liczba punktów</span>
-                        <span class="font-bold text-white">{{ "{:,}".format(faceit_data.get('games').get('cs2').get('faceit_elo', 0)) }}</span>
+                        <div class="flex flex-col">
+                            <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Faceit ELO</span>
+                            <span class="font-bold text-xl text-white tracking-tight">{{ "{:,}".format(faceit_data.get('games').get('cs2').get('faceit_elo', 0)) }}</span>
+                        </div>
                     {% else %}
-                        <div class="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center border border-slate-600 text-xs text-center shadow-inner relative overflow-hidden">
+                        <div class="w-14 h-14 rounded-full bg-slate-800/50 flex items-center justify-center border border-slate-700 text-xs text-center shadow-inner">
                             <span class="text-slate-500 leading-tight">Brak<br>Faceit</span>
                         </div>
                     {% endif %}
                 </div>
-                <div class="flex flex-col items-center">
-                    <span class="text-sm text-slate-300 mb-3">Nazwa gracza Faceit</span>
-                    <div class="h-16 flex items-center justify-center">
+
+                <!-- Faceit Nickname -->
+                <div class="flex flex-col border-l border-slate-700/60 pl-6">
+                    <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Nick Faceit</span>
+                    <div>
                         {% if faceit_data and faceit_data.get('nickname') %}
-                            <span class="text-2xl font-bold text-white drop-shadow-md">{{ faceit_data.get('nickname') }}</span>
+                            <span class="text-2xl font-bold text-white tracking-wide drop-shadow-sm">{{ faceit_data.get('nickname') }}</span>
                         {% else %}
                             <span class="text-slate-500 font-medium">Brak</span>
                         {% endif %}
@@ -100,9 +104,12 @@
             </div>
 
             <!-- Right: Hours Played -->
-            <div class="flex flex-col items-center justify-center min-w-[200px]">
-                <span class="text-sm text-slate-300 mb-2">Liczba Godzin w CS2:</span>
-                <span class="text-2xl text-white font-medium">{{ hours_played if hours_played else "N/A" }} </span>
+            <div class="dashboard-hours-box">
+                <span class="dashboard-hours-label uppercase text-xs tracking-wider font-semibold">Godziny w CS2</span>
+                <span class="dashboard-hours-value text-2xl font-bold text-emerald-400">
+                    {{ hours_played if hours_played else "N/A" }}
+                    <span class="text-sm font-normal text-slate-400">godz.</span>
+                </span>
             </div>
         </div>
 
@@ -117,24 +124,53 @@
         {% set faceit_lifetime = faceit_stats.lifetime if faceit_stats else {} %}
         <div class="stats-grid">
             <!-- Rating -->
-            <div class="glass-card stat-card-inner">
-                <p class="stat-label">Średni rating faceit</p>
-                <p class="stat-value-text">{{ faceit_lifetime.get('Average K/R Ratio', 'N/A') }}</p>
+            <div class="glass-card stat-card-inner flex flex-col justify-between">
+                <p class="stat-label">Średni rating ClutchData</p>
+                <div class="my-auto py-1">
+                    <p class="stat-value-text">
+                        {% if player_ratings and player_ratings.get('average_rating') is not none and player_ratings.get('average_rating') > 0 %}
+                            <span class="{{ 'text-emerald-400' if player_ratings.average_rating >= 1.0 else 'text-rose-400' }}">
+                                {{ "%.2f"|format(player_ratings.average_rating) if player_ratings.average_rating is number else player_ratings.average_rating }}
+                            </span>
+                        {% else %}
+                            <span class="text-slate-500 text-lg font-medium">Brak</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="stat-subtext text-xs text-slate-400 mt-2">
+                    {% if player_ratings and player_ratings.get('match_ratings') and (player_ratings.match_ratings|length > 0) %}
+                        Liczba zanalizowanych meczów: <span class="text-white font-medium">{{ player_ratings.match_ratings|length }}</span>
+                    {% else %}
+                        Brak zanalizowanych powtórek
+                    {% endif %}
+                </div>
             </div>
+
             <!-- KD -->
-            <div class="glass-card stat-card-inner">
-                <p class="stat-label">K/D ratio faceit</p>
-                <p class="stat-value-text">{{ faceit_lifetime.get('Average K/D Ratio', 'N/A') }}</p>
+            <div class="glass-card stat-card-inner flex flex-col justify-between">
+                <p class="stat-label">K/D ratio Faceit</p>
+                <div class="my-auto py-1">
+                    <p class="stat-value-text">{{ faceit_lifetime.get('Average K/D Ratio', 'N/A') }}</p>
+                </div>
+                <div class="stat-subtext text-xs text-slate-400 mt-2">Średnia ze wszystkich meczów</div>
             </div>
+
             <!-- Win Ratio -->
-            <div class="glass-card stat-card-inner">
+            <div class="glass-card stat-card-inner flex flex-col justify-between">
                 <p class="stat-label">Win ratio</p>
-                <p class="stat-value-text">{{ faceit_lifetime.get('Win Rate %', 'N/A') }}%</p>
+                <div class="my-auto py-1">
+                    <p class="stat-value-text">{{ faceit_lifetime.get('Win Rate %', 'N/A') }}%</p>
+                </div>
+                <div class="stat-subtext text-xs text-slate-400 mt-2">Procent wygranych meczów</div>
             </div>
+
             <!-- Matches -->
-            <div class="glass-card stat-card-inner">
+            <div class="glass-card stat-card-inner flex flex-col justify-between">
                 <p class="stat-label">Liczba meczów</p>
-                <p class="stat-value-text">{{ faceit_lifetime.get('Matches', 'N/A') }}</p>
+                <div class="my-auto py-1">
+                    <p class="stat-value-text">{{ faceit_lifetime.get('Matches', 'N/A') }}</p>
+                </div>
+                <div class="stat-subtext text-xs text-slate-400 mt-2">Wszystkie rozegrane mecze</div>
             </div>
         </div>
 
@@ -152,7 +188,7 @@
                     Aktywuj ClutchData+
                 </a>
                 {% else %}
-                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 font-semibold text-sm shadow-[0_0_15px_rgba(234,179,8,0.1)]">
+                <div class="btn-plus-active">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                     ClutchData+ Aktywne
                 </div>
@@ -161,58 +197,27 @@
         </div>
 
         <!-- Match History -->
-
-        <div class="glass-panel rounded-2xl overflow-hidden">
+        <div class="glass-panel rounded-2xl overflow-hidden border border-slate-700/60 shadow-xl">
             <div class="table-wrapper custom-scrollbar">
-                <table class="data-table">
+                <table class="data-table dashboard-matches-table">
                     <thead class="data-table-header">
                         <tr>
-                            <th>Data meczu</th>
-                            <th>Wynik</th>
-                            <th class="text-center">Punkty</th>
-                            <th class="text-center">Rating</th>
-                            <th>K/D/A</th>
-                            <th>K/D</th>
-                            <th>ADR</th>
-                            <th>Mapa</th>
+                            <th class="w-[14%] text-center">Data meczu</th>
+                            <th class="w-[13%] text-center">Wynik</th>
+                            <th class="w-[11%] text-center">Rating CD+</th>
+                            <th class="w-[14%] text-center">K / D / A</th>
+                            <th class="w-[10%] text-center">K/D</th>
+                            <th class="w-[10%] text-center">ADR</th>
+                            <th class="w-[15%] text-center">Mapa</th>
+                            <th class="w-[13%] text-center">Analiza CD+</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% if faceit_history %}
                             {% include '_match_rows.html' %}
                         {% else %}
-                            <!-- Mock Data to match layout -->
                             <tr>
-                                <td>2026-06-08</td>
-                                <td class="text-emerald-400 font-medium">13 - 10</td>
-                                <td>de_mirage</td>
-                                <td class="text-emerald-400">+25</td>
-                                <td>21/14/5</td>
-                                <td>1.25</td>
-                            </tr>
-                            <tr>
-                                <td>2026-06-07</td>
-                                <td class="text-red-400 font-medium">9 - 13</td>
-                                <td>de_inferno</td>
-                                <td class="text-red-400">-24</td>
-                                <td>15/18/3</td>
-                                <td>0.95</td>
-                            </tr>
-                            <tr>
-                                <td>2026-06-06</td>
-                                <td class="text-emerald-400 font-medium">13 - 11</td>
-                                <td>de_nuke</td>
-                                <td class="text-emerald-400">+26</td>
-                                <td>24/13/4</td>
-                                <td>1.45</td>
-                            </tr>
-                            <tr>
-                                <td>2026-06-05</td>
-                                <td class="text-emerald-400 font-medium">13 - 7</td>
-                                <td>de_ancient</td>
-                                <td class="text-emerald-400">+25</td>
-                                <td>20/11/7</td>
-                                <td>1.32</td>
+                                <td colspan="8" class="text-center text-slate-400 py-8">Brak historii meczów</td>
                             </tr>
                         {% endif %}
                     </tbody>
@@ -223,8 +228,8 @@
         <!-- Przycisk Załaduj Więcej -->
         {% if faceit_history %}
         <div class="flex justify-center mt-6">
-            <button id="load-more-btn" class="stats-cta-btn bg-slate-800 hover:bg-slate-700 transition-colors border border-slate-700 shadow-md">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 inline-block"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <button id="load-more-btn" class="btn-load-more">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 Załaduj więcej meczów
             </button>
         </div>
@@ -247,7 +252,13 @@
                 
                 loadMoreBtn.addEventListener('click', async () => {
                     loadMoreBtn.disabled = true;
-                    loadMoreBtn.innerHTML = 'Ładowanie...';
+                    loadMoreBtn.innerHTML = `
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Ładowanie kolejnych meczów...
+                    `;
                     
                     try {
                         const response = await fetch(`/api/player/${steamId}/history?offset=${currentOffset}`);
@@ -260,15 +271,17 @@
                                 loadMoreBtn.disabled = false;
                                 loadMoreBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 inline-block"><polyline points="6 9 12 15 18 9"></polyline></svg>Załaduj więcej meczów';
                             } else {
-                                loadMoreBtn.innerHTML = 'Brak więcej meczów';
+                                loadMoreBtn.innerHTML = 'Załadowano wszystkie mecze';
+                                loadMoreBtn.disabled = true;
+                                loadMoreBtn.classList.add('opacity-60', 'cursor-not-allowed');
                             }
                         } else {
-                            loadMoreBtn.innerHTML = 'Błąd pobierania';
+                            loadMoreBtn.innerHTML = 'Błąd pobierania danych';
                             loadMoreBtn.disabled = false;
                         }
                     } catch (error) {
                         console.error("Error fetching more matches:", error);
-                        loadMoreBtn.innerHTML = 'Błąd pobierania';
+                        loadMoreBtn.innerHTML = 'Błąd połączenia';
                         loadMoreBtn.disabled = false;
                     }
                 });
