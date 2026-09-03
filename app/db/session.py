@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 # Pobieramy URL bazy ze zmiennych środowiskowych. 
 # Na Render będzie to zewnętrzna baza, lokalnie - SQLite.
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./clutchdata.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./clutchdata.db").strip().strip("'\"")
 
 # Render nadaje URL zaczynający się od "postgres://" lub "postgresql://", 
 # ale SQLAlchemy wymaga wariantu asyncpg, czyli "postgresql+asyncpg://"
